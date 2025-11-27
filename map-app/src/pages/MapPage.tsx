@@ -1,8 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import { useAppStore } from '../store/useAppStore';
-import { Box, Dialog, DialogTitle, DialogContent, TextField, Button, MenuItem, Select, FormControl, InputLabel, Typography } from '@mui/material';
+import { Box, Dialog, DialogTitle, DialogContent, TextField, Button, MenuItem, Select, FormControl, InputLabel, Typography, IconButton, Tooltip, Menu, ListItemIcon, ListItemText } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import MyLocationIcon from '@mui/icons-material/MyLocation';
+import LayersIcon from '@mui/icons-material/Layers';
+import MapIcon from '@mui/icons-material/Map';
+import SatelliteIcon from '@mui/icons-material/Satellite';
+import DirectionsBoatIcon from '@mui/icons-material/DirectionsBoat';
+import { Geolocation } from '@capacitor/geolocation';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -18,6 +24,19 @@ let DefaultIcon = L.icon({
 });
 
 L.Marker.prototype.options.icon = DefaultIcon;
+
+// Componente para controlar el centrado del mapa
+const MapController = ({ center, zoom }: { center: [number, number] | null; zoom?: number }) => {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (center) {
+      map.setView(center, zoom || map.getZoom());
+    }
+  }, [center, zoom, map]);
+  
+  return null;
+};
 
 const MapClickHandler = ({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) => {
     useMapEvents({
@@ -36,10 +55,38 @@ export const MapPage: React.FC = () => {
   const [newSpotName, setNewSpotName] = useState('');
   const [newSpotDesc, setNewSpotDesc] = useState('');
   const [newSpotType, setNewSpotType] = useState('fishing');
+  const [mapLayer, setMapLayer] = useState<'standard' | 'satellite' | 'nautical'>('satellite');
+  const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [layerMenuAnchor, setLayerMenuAnchor] = useState<null | HTMLElement>(null);
 
   useEffect(() => {
     loadSpots();
+    // Obtener ubicación inicial del usuario
+    getCurrentLocation();
   }, [loadSpots]);
+
+  const getCurrentLocation = async () => {
+    try {
+      const position = await Geolocation.getCurrentPosition();
+      const coords: [number, number] = [position.coords.latitude, position.coords.longitude];
+      setUserLocation(coords);
+    } catch (error) {
+      console.error('Error obteniendo ubicación:', error);
+    }
+  };
+
+  const handleCenterOnUser = () => {
+    if (userLocation) {
+      setMapCenter(userLocation);
+    } else {
+      getCurrentLocation().then(() => {
+        if (userLocation) {
+          setMapCenter(userLocation);
+        }
+      });
+    }
+  };
 
   const handleMapClick = (lat: number, lng: number) => {
       setNewSpotLocation({ lat, lng });
@@ -66,11 +113,56 @@ export const MapPage: React.FC = () => {
   return (
     <Box sx={{ height: '100%', width: '100%', position: 'relative' }}>
       <MapContainer center={[40.416775, -3.703790]} zoom={6} style={{ height: '100%', width: '100%' }}>
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        {/* Capa base según selección */}
+        {mapLayer === 'standard' && (
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+        )}
+        
+        {mapLayer === 'satellite' && (
+          <TileLayer
+            attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          />
+        )}
+        
+        {mapLayer === 'nautical' && (
+          <>
+            {/* Mapa base náutico de NOAA (US) */}
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              opacity={0.5}
+            />
+            {/* Capa de cartas náuticas OpenSeaMap */}
+            <TileLayer
+              attribution='Map data: &copy; <a href="http://www.openseamap.org">OpenSeaMap</a> contributors'
+              url="https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png"
+            />
+          </>
+        )}
+        
         <MapClickHandler onMapClick={handleMapClick} />
+        <MapController center={mapCenter} zoom={13} />
+        
+        {/* Marcador de ubicación del usuario */}
+        {userLocation && (
+          <Marker 
+            position={userLocation}
+            icon={L.divIcon({
+              className: 'custom-user-marker',
+              html: '<div style="background: #00bcd4; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>',
+              iconSize: [20, 20],
+              iconAnchor: [10, 10]
+            })}
+          >
+            <Popup>
+              <strong>📍 Tu ubicación</strong>
+            </Popup>
+          </Marker>
+        )}
         
         {spots.map((spot) => (
             <Marker 
@@ -89,6 +181,150 @@ export const MapPage: React.FC = () => {
             </Marker>
         ))}
       </MapContainer>
+
+      {/* Controles flotantes */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 16,
+          right: 16,
+          zIndex: 1000,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+        }}
+      >
+        {/* Botón de capas */}
+        <Tooltip title="Cambiar mapa" placement="left">
+          <IconButton
+            onClick={(e) => setLayerMenuAnchor(e.currentTarget)}
+            sx={{
+              bgcolor: 'background.paper',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+              '&:hover': {
+                bgcolor: 'primary.main',
+                color: 'white',
+              },
+              width: 48,
+              height: 48,
+            }}
+          >
+            <LayersIcon />
+          </IconButton>
+        </Tooltip>
+
+        {/* Menú de capas */}
+        <Menu
+          anchorEl={layerMenuAnchor}
+          open={Boolean(layerMenuAnchor)}
+          onClose={() => setLayerMenuAnchor(null)}
+          sx={{
+            '& .MuiPaper-root': {
+              bgcolor: 'background.paper',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+              minWidth: 200,
+            }
+          }}
+        >
+          <MenuItem 
+            onClick={() => {
+              setMapLayer('standard');
+              setLayerMenuAnchor(null);
+            }}
+            selected={mapLayer === 'standard'}
+            sx={{
+              '&.Mui-selected': {
+                bgcolor: 'rgba(0, 188, 212, 0.15)',
+              }
+            }}
+          >
+            <ListItemIcon>
+              <MapIcon sx={{ color: mapLayer === 'standard' ? 'primary.main' : 'inherit' }} />
+            </ListItemIcon>
+            <ListItemText primary="Mapa Estándar" />
+          </MenuItem>
+          <MenuItem 
+            onClick={() => {
+              setMapLayer('satellite');
+              setLayerMenuAnchor(null);
+            }}
+            selected={mapLayer === 'satellite'}
+            sx={{
+              '&.Mui-selected': {
+                bgcolor: 'rgba(0, 188, 212, 0.15)',
+              }
+            }}
+          >
+            <ListItemIcon>
+              <SatelliteIcon sx={{ color: mapLayer === 'satellite' ? 'primary.main' : 'inherit' }} />
+            </ListItemIcon>
+            <ListItemText primary="Satélite" />
+          </MenuItem>
+          <MenuItem 
+            onClick={() => {
+              setMapLayer('nautical');
+              setLayerMenuAnchor(null);
+            }}
+            selected={mapLayer === 'nautical'}
+            sx={{
+              '&.Mui-selected': {
+                bgcolor: 'rgba(0, 188, 212, 0.15)',
+              }
+            }}
+          >
+            <ListItemIcon>
+              <DirectionsBoatIcon sx={{ color: mapLayer === 'nautical' ? 'primary.main' : 'inherit' }} />
+            </ListItemIcon>
+            <ListItemText primary="Carta Náutica" />
+          </MenuItem>
+        </Menu>
+
+        {/* Botón de geolocalización */}
+        <Tooltip title="Mi ubicación" placement="left">
+          <IconButton
+            onClick={handleCenterOnUser}
+            sx={{
+              bgcolor: 'background.paper',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+              '&:hover': {
+                bgcolor: 'primary.main',
+                color: 'white',
+              },
+              width: 48,
+              height: 48,
+            }}
+          >
+            <MyLocationIcon />
+          </IconButton>
+        </Tooltip>
+      </Box>
+
+      {/* Indicador de capa activa */}
+      <Box
+        sx={{
+          position: 'absolute',
+          bottom: 80,
+          left: 16,
+          zIndex: 1000,
+          bgcolor: 'background.paper',
+          px: 2,
+          py: 1,
+          borderRadius: 2,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+        }}
+      >
+        {mapLayer === 'standard' && <MapIcon sx={{ fontSize: 18, color: 'primary.main' }} />}
+        {mapLayer === 'satellite' && <SatelliteIcon sx={{ fontSize: 18, color: 'primary.main' }} />}
+        {mapLayer === 'nautical' && <DirectionsBoatIcon sx={{ fontSize: 18, color: 'primary.main' }} />}
+        <Typography variant="caption" sx={{ fontWeight: 600 }}>
+          {mapLayer === 'standard' && 'Mapa Estándar'}
+          {mapLayer === 'satellite' && '🛰️ Vista Satélite'}
+          {mapLayer === 'nautical' && '🧭 Carta Náutica'}
+        </Typography>
+      </Box>
 
       <Dialog open={openAddDialog} onClose={() => setOpenAddDialog(false)} maxWidth="sm" fullWidth>
           <DialogTitle sx={{ 
