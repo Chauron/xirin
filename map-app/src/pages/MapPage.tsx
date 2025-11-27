@@ -8,6 +8,9 @@ import LayersIcon from '@mui/icons-material/Layers';
 import MapIcon from '@mui/icons-material/Map';
 import SatelliteIcon from '@mui/icons-material/Satellite';
 import DirectionsBoatIcon from '@mui/icons-material/DirectionsBoat';
+import AddIcon from '@mui/icons-material/Add';
+import AddLocationIcon from '@mui/icons-material/AddLocation';
+import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import { Geolocation } from '@capacitor/geolocation';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -38,10 +41,12 @@ const MapController = ({ center, zoom }: { center: [number, number] | null; zoom
   return null;
 };
 
-const MapClickHandler = ({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) => {
+const MapClickHandler = ({ onMapClick, isSelecting }: { onMapClick: (lat: number, lng: number) => void; isSelecting: boolean }) => {
     useMapEvents({
         click(e) {
-            onMapClick(e.latlng.lat, e.latlng.lng);
+            if (isSelecting) {
+                onMapClick(e.latlng.lat, e.latlng.lng);
+            }
         }
     });
     return null;
@@ -61,6 +66,8 @@ export const MapPage: React.FC = () => {
   const [layerMenuAnchor, setLayerMenuAnchor] = useState<null | HTMLElement>(null);
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [speedDialOpen, setSpeedDialOpen] = useState(false);
+  const [selectingOnMap, setSelectingOnMap] = useState(false);
 
   useEffect(() => {
     loadSpots();
@@ -112,7 +119,28 @@ export const MapPage: React.FC = () => {
 
   const handleMapClick = (lat: number, lng: number) => {
       setNewSpotLocation({ lat, lng });
+      setSelectingOnMap(false);
       setOpenAddDialog(true);
+  };
+
+  const handleAddWithCurrentLocation = async () => {
+    if (locating) return;
+    
+    if (userLocation) {
+      setNewSpotLocation({ lat: userLocation[0], lng: userLocation[1] });
+      setOpenAddDialog(true);
+    } else {
+      await getCurrentLocation();
+      if (userLocation) {
+        setNewSpotLocation({ lat: userLocation[0], lng: userLocation[1] });
+        setOpenAddDialog(true);
+      }
+    }
+  };
+
+  const handleAddBySelectingOnMap = () => {
+    setSelectingOnMap(true);
+    setSpeedDialOpen(false);
   };
 
   const handleSaveSpot = async () => {
@@ -166,7 +194,7 @@ export const MapPage: React.FC = () => {
           </>
         )}
         
-        <MapClickHandler onMapClick={handleMapClick} />
+        <MapClickHandler onMapClick={handleMapClick} isSelecting={selectingOnMap} />
         <MapController center={mapCenter} zoom={13} />
         
         {/* Marcador de ubicación del usuario */}
@@ -351,32 +379,165 @@ export const MapPage: React.FC = () => {
         </Alert>
       </Snackbar>
 
-      {/* Indicador de capa activa */}
-      <Box
-        sx={{
-          position: 'absolute',
-          bottom: 80,
-          left: 16,
-          zIndex: 1000,
-          bgcolor: 'background.paper',
-          px: 2,
-          py: 1,
-          borderRadius: 2,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1,
-        }}
-      >
-        {mapLayer === 'standard' && <MapIcon sx={{ fontSize: 18, color: 'primary.main' }} />}
-        {mapLayer === 'satellite' && <SatelliteIcon sx={{ fontSize: 18, color: 'primary.main' }} />}
-        {mapLayer === 'nautical' && <DirectionsBoatIcon sx={{ fontSize: 18, color: 'primary.main' }} />}
-        <Typography variant="caption" sx={{ fontWeight: 600 }}>
-          {mapLayer === 'standard' && 'Mapa Estándar'}
-          {mapLayer === 'satellite' && '🛰️ Vista Satélite'}
-          {mapLayer === 'nautical' && '🧭 Carta Náutica'}
-        </Typography>
-      </Box>
+      {/* Botón flotante para añadir ubicación */}
+      {!speedDialOpen && !selectingOnMap && (
+        <IconButton
+          onClick={() => setSpeedDialOpen(true)}
+          sx={{
+            position: 'absolute',
+            bottom: 90,
+            right: 16,
+            zIndex: 1000,
+            width: 56,
+            height: 56,
+            background: 'linear-gradient(45deg, #00bcd4 30%, #4caf50 90%)',
+            boxShadow: '0 4px 20px rgba(0, 188, 212, 0.4)',
+            color: 'white',
+            '&:hover': {
+              background: 'linear-gradient(45deg, #00acc1 30%, #43a047 90%)',
+            }
+          }}
+        >
+          <AddIcon />
+        </IconButton>
+      )}
+
+      {/* Menú de opciones para añadir */}
+      {speedDialOpen && (
+        <>
+          {/* Overlay para cerrar al tocar fuera */}
+          <Box
+            onClick={() => setSpeedDialOpen(false)}
+            sx={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 999,
+              bgcolor: 'rgba(0,0,0,0.3)',
+            }}
+          />
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 160,
+              right: 16,
+              zIndex: 1000,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1.5,
+            }}
+          >
+            <Button
+              variant="contained"
+              startIcon={<GpsFixedIcon />}
+              onClick={handleAddWithCurrentLocation}
+              sx={{
+                bgcolor: 'background.paper',
+                color: 'text.primary',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+                '&:hover': {
+                  bgcolor: 'primary.main',
+                  color: 'white'
+                },
+                justifyContent: 'flex-start',
+                textTransform: 'none',
+                fontWeight: 600,
+                py: 1.5,
+                px: 2.5,
+                minWidth: 220,
+              }}
+            >
+              Usar mi ubicación
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<AddLocationIcon />}
+              onClick={handleAddBySelectingOnMap}
+              sx={{
+                bgcolor: 'background.paper',
+                color: 'text.primary',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+                '&:hover': {
+                  bgcolor: 'secondary.main',
+                  color: 'white'
+                },
+                justifyContent: 'flex-start',
+                textTransform: 'none',
+                fontWeight: 600,
+                py: 1.5,
+                px: 2.5,
+                minWidth: 220,
+              }}
+            >
+              Seleccionar en mapa
+            </Button>
+          </Box>
+          {/* Botón principal transformado en X */}
+          <IconButton
+            onClick={() => setSpeedDialOpen(false)}
+            sx={{
+              position: 'absolute',
+              bottom: 90,
+              right: 16,
+              zIndex: 1000,
+              width: 56,
+              height: 56,
+              background: 'linear-gradient(45deg, #f44336 30%, #e91e63 90%)',
+              boxShadow: '0 4px 20px rgba(244, 67, 54, 0.4)',
+              color: 'white',
+              '&:hover': {
+                background: 'linear-gradient(45deg, #d32f2f 30%, #c2185b 90%)',
+              }
+            }}
+          >
+            ✕
+          </IconButton>
+        </>
+      )}
+
+      {/* Indicador de modo selección */}
+      {selectingOnMap && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 16,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 1001,
+            bgcolor: 'primary.main',
+            color: 'white',
+            px: 3,
+            py: 1.5,
+            borderRadius: 3,
+            boxShadow: '0 4px 20px rgba(0, 188, 212, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            fontWeight: 600,
+          }}
+        >
+          <AddLocationIcon />
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            Toca el mapa para añadir ubicación
+          </Typography>
+          <IconButton
+            size="small"
+            onClick={() => setSelectingOnMap(false)}
+            sx={{
+              ml: 1,
+              color: 'white',
+              bgcolor: 'rgba(255,255,255,0.2)',
+              '&:hover': {
+                bgcolor: 'rgba(255,255,255,0.3)'
+              }
+            }}
+          >
+            ✕
+          </IconButton>
+        </Box>
+      )}
 
       <Dialog open={openAddDialog} onClose={() => setOpenAddDialog(false)} maxWidth="sm" fullWidth>
           <DialogTitle sx={{ 

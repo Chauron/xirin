@@ -25,10 +25,10 @@ export const Layout: React.FC = () => {
         sx={{ 
           background: 'linear-gradient(135deg, #0a1929 0%, #1a237e 100%)',
           boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-          paddingTop: 'env(safe-area-inset-top)',
+          pt: 'env(safe-area-inset-top)',
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ minHeight: { xs: 56, sm: 64 } }}>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 700, letterSpacing: 1 }}>
             🌊 XIRIN MARINE
           </Typography>
@@ -47,7 +47,7 @@ export const Layout: React.FC = () => {
         zIndex: 1000,
         background: 'linear-gradient(135deg, #0a1929 0%, #1a237e 100%)',
         boxShadow: '0 -4px 20px rgba(0,0,0,0.5)',
-        paddingBottom: 'env(safe-area-inset-bottom)',
+        pb: 'env(safe-area-inset-bottom)',
       }} elevation={3}>
         <BottomNavigation
           showLabels
@@ -60,6 +60,7 @@ export const Layout: React.FC = () => {
           }}
           sx={{ 
             background: 'transparent',
+            minHeight: 56,
             '& .MuiBottomNavigationAction-root': {
               color: 'rgba(255,255,255,0.5)',
               '&.Mui-selected': {
