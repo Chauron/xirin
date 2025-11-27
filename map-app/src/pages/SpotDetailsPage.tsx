@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import type { Spot } from '../models/types';
 import { fetchWeatherForecast, fetchMarineWeather } from '../api/weatherApi';
-import { Box, Typography, Card, CardContent, Button, CircularProgress, IconButton, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import { fetchTideData } from '../api/tideApi';
+import { Box, Typography, Card, CardContent, Button, CircularProgress, IconButton, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -34,6 +35,7 @@ export const SpotDetailsPage: React.FC = () => {
   const [spot, setSpot] = useState<Spot | undefined>(undefined);
   const [weather, setWeather] = useState<any>(null);
   const [marine, setMarine] = useState<any>(null);
+  const [tideData, setTideData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState(0); // 0: hoy, 1: mañana, 2: pasado
   const [mainTab, setMainTab] = useState(0); // 0: previsión, 1: capturas
@@ -61,6 +63,16 @@ export const SpotDetailsPage: React.FC = () => {
     };
     loadData();
   }, [spot]);
+
+  useEffect(() => {
+    const loadTideData = async () => {
+      if (spot) {
+        const tData = await fetchTideData(spot.location.lat, spot.location.lng, 'demo', selectedDay);
+        setTideData(tData);
+      }
+    };
+    loadTideData();
+  }, [spot, selectedDay]);
 
   if (!spot) return <Box p={2}>Cargando spot...</Box>;
 
@@ -187,7 +199,8 @@ export const SpotDetailsPage: React.FC = () => {
             <Tab label="Pasado" />
           </Tabs>
 
-          {/* Estado actual */}
+          {/* Estado actual - solo para el día de hoy */}
+          {selectedDay === 0 && (
           <Card 
             variant="outlined" 
             sx={{ 
@@ -265,6 +278,57 @@ export const SpotDetailsPage: React.FC = () => {
               </Box>
             </CardContent>
           </Card>
+          )}
+
+          {/* Tide Information */}
+          {tideData && (
+            <Card 
+              variant="outlined" 
+              sx={{ 
+                mb: 2,
+                background: 'linear-gradient(135deg, rgba(0, 150, 200, 0.1) 0%, rgba(0, 100, 150, 0.1) 100%)',
+                border: '1px solid rgba(0, 150, 200, 0.3)',
+                boxShadow: '0 8px 32px rgba(0, 150, 200, 0.2)'
+              }}
+            >
+              <CardContent>
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  🌊 Mareas - {format(new Date(tideData.date), 'dd MMM')}
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
+                  {tideData.extremes.map((tide: any, index: number) => (
+                    <Box 
+                      key={index}
+                      sx={{ 
+                        flex: '1 1 45%', 
+                        p: 2, 
+                        borderRadius: 2, 
+                        bgcolor: tide.type === 'high' ? 'rgba(0, 188, 212, 0.1)' : 'rgba(76, 175, 80, 0.1)',
+                        border: tide.type === 'high' ? '1px solid rgba(0, 188, 212, 0.3)' : '1px solid rgba(76, 175, 80, 0.3)'
+                      }}
+                    >
+                      <Chip 
+                        label={tide.type === 'high' ? 'Pleamar' : 'Bajamar'}
+                        size="small"
+                        sx={{ 
+                          mb: 1,
+                          bgcolor: tide.type === 'high' ? 'rgba(0, 188, 212, 0.3)' : 'rgba(76, 175, 80, 0.3)',
+                          color: 'white',
+                          fontWeight: 600
+                        }}
+                      />
+                      <Typography variant="h4" sx={{ fontWeight: 700, color: tide.type === 'high' ? 'primary.main' : 'secondary.main' }}>
+                        {format(new Date(tide.time), 'HH:mm')}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {tide.height.toFixed(2)} m
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Charts */}
           <Card 
@@ -285,8 +349,8 @@ export const SpotDetailsPage: React.FC = () => {
                           <LineChart data={chartData}>
                               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                               <XAxis dataKey="time" stroke="rgba(255,255,255,0.5)" />
-                              <YAxis yAxisId="left" stroke="rgba(255,255,255,0.5)" label={{ value: '°C', angle: -90, position: 'insideLeft', style: { fill: 'rgba(255,255,255,0.7)' } }} />
-                              <YAxis yAxisId="right" orientation="right" stroke="rgba(255,255,255,0.5)" label={{ value: 'km/h / m', angle: 90, position: 'insideRight', style: { fill: 'rgba(255,255,255,0.7)' } }} />
+                              <YAxis yAxisId="left" stroke="rgba(255,255,255,0.5)" label={{ value: 'Oleaje (m)', angle: -90, position: 'insideLeft', style: { fill: 'rgba(255,255,255,0.7)' } }} />
+                              <YAxis yAxisId="right" orientation="right" stroke="rgba(255,255,255,0.5)" label={{ value: 'Viento (km/h)', angle: 90, position: 'insideRight', style: { fill: 'rgba(255,255,255,0.7)' } }} />
                               <RechartsTooltip 
                                 contentStyle={{ 
                                   backgroundColor: 'rgba(19, 47, 76, 0.95)', 
@@ -301,16 +365,7 @@ export const SpotDetailsPage: React.FC = () => {
                                 iconType="line"
                               />
                               <Line 
-                                yAxisId="left" 
-                                type="monotone" 
-                                dataKey="temp" 
-                                stroke="#00bcd4" 
-                                strokeWidth={3}
-                                name="Temperatura (°C)" 
-                                dot={{ fill: '#00bcd4', r: 4 }}
-                              />
-                              <Line 
-                                yAxisId="right" 
+                                yAxisId="right"
                                 type="monotone" 
                                 dataKey="wind" 
                                 stroke="#4caf50" 
@@ -319,7 +374,7 @@ export const SpotDetailsPage: React.FC = () => {
                                 dot={{ fill: '#4caf50', r: 3 }}
                               />
                               <Line 
-                                yAxisId="right" 
+                                yAxisId="left"
                                 type="monotone" 
                                 dataKey="wave" 
                                 stroke="#ff9800" 
