@@ -6,7 +6,7 @@ import { fetchWeatherForecast, fetchMarineWeather } from '../api/weatherApi';
 import { Box, Typography, Card, CardContent, Button, CircularProgress, IconButton, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 // Utilidades para iconos de cielo y viento
 const getSkyIcon = (weatherCode: number, hour: number) => {
   // Ejemplo simple, puedes expandir según los códigos de Open-Meteo
@@ -266,9 +266,9 @@ export const SpotDetailsPage: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Tabla horaria detallada */}
+          {/* Charts */}
           <Card 
-            variant="outlined" 
+            variant="outlined"
             sx={{ 
               mb: 2,
               background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.05) 0%, rgba(76, 175, 80, 0.05) 100%)',
@@ -276,78 +276,17 @@ export const SpotDetailsPage: React.FC = () => {
               boxShadow: '0 4px 20px rgba(0, 188, 212, 0.1)'
             }}
           >
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                📅 Previsión Horaria
-              </Typography>
-              <TableContainer 
-                component={Paper} 
-                sx={{ 
-                  maxHeight: 320,
-                  bgcolor: 'rgba(0, 0, 0, 0.2)',
-                  borderRadius: 2,
-                  '& .MuiTableCell-head': {
-                    bgcolor: 'rgba(0, 188, 212, 0.1)',
-                    fontWeight: 700,
-                    color: 'primary.main'
-                  },
-                  '& .MuiTableRow-root:hover': {
-                    bgcolor: 'rgba(0, 188, 212, 0.05)'
-                  }
-                }}
-              >
-                <Table size="small" stickyHeader>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Hora</TableCell>
-                      <TableCell>☁️</TableCell>
-                      <TableCell>Temp</TableCell>
-                      <TableCell>Viento</TableCell>
-                      <TableCell>Dir</TableCell>
-                      <TableCell>Presión</TableCell>
-                      <TableCell>Hum</TableCell>
-                      <TableCell>Ola</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {chartData.map((row: any, i: number) => (
-                      <TableRow key={i}>
-                        <TableCell sx={{ fontWeight: 600 }}>{row.time}</TableCell>
-                        <TableCell sx={{ fontSize: '1.2rem' }}>{row.sky}</TableCell>
-                        <TableCell sx={{ color: 'primary.main', fontWeight: 600 }}>{row.temp}°</TableCell>
-                        <TableCell>{row.wind} km/h</TableCell>
-                        <TableCell>{getWindArrow(row.windDir)} {row.windDir}°</TableCell>
-                        <TableCell>{row.pressure}</TableCell>
-                        <TableCell>{row.humidity}%</TableCell>
-                        <TableCell sx={{ color: 'secondary.main', fontWeight: 600 }}>{row.wave}m</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
-
-          {/* Charts */}
-          <Card 
-            variant="outlined"
-            sx={{ 
-              background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.05) 0%, rgba(76, 175, 80, 0.05) 100%)',
-              border: '1px solid rgba(0, 188, 212, 0.2)',
-              boxShadow: '0 4px 20px rgba(0, 188, 212, 0.1)'
-            }}
-          >
               <CardContent>
                   <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    📈 Gráficas 24h
+                    � Gráficas 24h
                   </Typography>
-                  <Box sx={{ height: 250, width: '100%' }}>
+                  <Box sx={{ height: 300, width: '100%' }}>
                       <ResponsiveContainer>
                           <LineChart data={chartData}>
                               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                               <XAxis dataKey="time" stroke="rgba(255,255,255,0.5)" />
-                              <YAxis yAxisId="left" stroke="rgba(255,255,255,0.5)" />
-                              <YAxis yAxisId="right" orientation="right" stroke="rgba(255,255,255,0.5)" />
+                              <YAxis yAxisId="left" stroke="rgba(255,255,255,0.5)" label={{ value: '°C', angle: -90, position: 'insideLeft', style: { fill: 'rgba(255,255,255,0.7)' } }} />
+                              <YAxis yAxisId="right" orientation="right" stroke="rgba(255,255,255,0.5)" label={{ value: 'km/h / m', angle: 90, position: 'insideRight', style: { fill: 'rgba(255,255,255,0.7)' } }} />
                               <RechartsTooltip 
                                 contentStyle={{ 
                                   backgroundColor: 'rgba(19, 47, 76, 0.95)', 
@@ -355,13 +294,19 @@ export const SpotDetailsPage: React.FC = () => {
                                   borderRadius: 8
                                 }}
                               />
+                              <Legend 
+                                wrapperStyle={{ 
+                                  paddingTop: '10px'
+                                }}
+                                iconType="line"
+                              />
                               <Line 
                                 yAxisId="left" 
                                 type="monotone" 
                                 dataKey="temp" 
                                 stroke="#00bcd4" 
                                 strokeWidth={3}
-                                name="Temp (°C)" 
+                                name="Temperatura (°C)" 
                                 dot={{ fill: '#00bcd4', r: 4 }}
                               />
                               <Line 
@@ -379,13 +324,74 @@ export const SpotDetailsPage: React.FC = () => {
                                 dataKey="wave" 
                                 stroke="#ff9800" 
                                 strokeWidth={2}
-                                name="Ola (m)" 
+                                name="Oleaje (m)" 
                                 dot={{ fill: '#ff9800', r: 3 }}
                               />
                           </LineChart>
                       </ResponsiveContainer>
                   </Box>
               </CardContent>
+          </Card>
+
+          {/* Tabla horaria detallada */}
+          <Card 
+            variant="outlined" 
+            sx={{ 
+              background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.05) 0%, rgba(76, 175, 80, 0.05) 100%)',
+              border: '1px solid rgba(0, 188, 212, 0.2)',
+              boxShadow: '0 4px 20px rgba(0, 188, 212, 0.1)'
+            }}
+          >
+            <CardContent>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                📅 Previsión Horaria
+              </Typography>
+              <TableContainer 
+                component={Paper} 
+                sx={{ 
+                  bgcolor: 'rgba(0, 0, 0, 0.2)',
+                  borderRadius: 2,
+                  '& .MuiTableCell-head': {
+                    bgcolor: 'rgba(0, 188, 212, 0.1)',
+                    fontWeight: 700,
+                    color: 'primary.main',
+                    opacity: 1
+                  },
+                  '& .MuiTableRow-root:hover': {
+                    bgcolor: 'rgba(0, 188, 212, 0.05)'
+                  }
+                }}
+              >
+                <Table size="small" stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell align="center" sx={{ minWidth: 60, py: 1.5 }}>Hora</TableCell>
+                      <TableCell align="center" sx={{ minWidth: 40, py: 1.5 }}>☁️</TableCell>
+                      <TableCell align="center" sx={{ minWidth: 60, py: 1.5 }}>🌡️<br/>Temp</TableCell>
+                      <TableCell align="center" sx={{ minWidth: 70, py: 1.5 }}>💨<br/>Viento</TableCell>
+                      <TableCell align="center" sx={{ minWidth: 70, py: 1.5 }}>🧭<br/>Dir</TableCell>
+                      <TableCell align="center" sx={{ minWidth: 70, py: 1.5 }}>📊<br/>Presión</TableCell>
+                      <TableCell align="center" sx={{ minWidth: 60, py: 1.5 }}>💧<br/>Hum</TableCell>
+                      <TableCell align="center" sx={{ minWidth: 60, py: 1.5 }}>🌊<br/>Ola</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {chartData.map((row: any, i: number) => (
+                      <TableRow key={i}>
+                        <TableCell align="center" sx={{ fontWeight: 600 }}>{row.time}</TableCell>
+                        <TableCell align="center" sx={{ fontSize: '1.2rem' }}>{row.sky}</TableCell>
+                        <TableCell align="center" sx={{ color: 'primary.main', fontWeight: 600 }}>{row.temp}°C</TableCell>
+                        <TableCell align="center">{row.wind} km/h</TableCell>
+                        <TableCell align="center">{getWindArrow(row.windDir)} {row.windDir}°</TableCell>
+                        <TableCell align="center">{row.pressure} hPa</TableCell>
+                        <TableCell align="center">{row.humidity}%</TableCell>
+                        <TableCell align="center" sx={{ color: 'secondary.main', fontWeight: 600 }}>{row.wave}m</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
           </Card>
         </Box>
       )}
