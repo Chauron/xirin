@@ -4,6 +4,7 @@ import { MapPage } from './pages/MapPage';
 import { SpotDetailsPage } from './pages/SpotDetailsPage';
 import { AddCatchPage } from './pages/AddCatchPage';
 import { CatchesPage } from './pages/CatchesPage';
+import { CatchDetailsPage } from './pages/CatchDetailsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 
@@ -69,6 +70,7 @@ function App() {
             <Route path="spot/:id" element={<SpotDetailsPage />} />
             <Route path="add-catch/:spotId" element={<AddCatchPage />} />
             <Route path="catches" element={<CatchesPage />} />
+            <Route path="catch/:id" element={<CatchDetailsPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>

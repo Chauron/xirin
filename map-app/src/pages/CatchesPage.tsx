@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { Box, Typography, List, ListItem, ListItemText, ListItemAvatar, Avatar, Card } from '@mui/material';
 import { format } from 'date-fns';
 
 export const CatchesPage: React.FC = () => {
+  const navigate = useNavigate();
   const { catches, loadCatches, spots, loadSpots } = useAppStore();
 
   useEffect(() => {
@@ -40,10 +42,12 @@ export const CatchesPage: React.FC = () => {
               {catches.map((c) => (
                   <Card 
                     key={c.id}
+                    onClick={() => navigate(`/catch/${c.id}`)}
                     sx={{ 
                       background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.05) 0%, rgba(76, 175, 80, 0.05) 100%)',
                       border: '1px solid rgba(0, 188, 212, 0.2)',
                       transition: 'transform 0.2s, box-shadow 0.2s',
+                      cursor: 'pointer',
                       '&:hover': {
                         transform: 'translateY(-4px)',
                         boxShadow: '0 8px 24px rgba(0, 188, 212, 0.3)'

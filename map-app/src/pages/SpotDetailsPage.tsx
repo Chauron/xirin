@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import type { Spot } from '../models/types';
 import { fetchWeatherForecast, fetchMarineWeather } from '../api/weatherApi';
-import { Box, Typography, Card, CardContent, Button, CircularProgress, IconButton, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Tooltip } from '@mui/material';
+import { Box, Typography, Card, CardContent, Button, CircularProgress, IconButton, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
@@ -30,12 +30,13 @@ import { format } from 'date-fns';
 export const SpotDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { spots, loadSpots } = useAppStore();
+  const { spots, loadSpots, catches, loadCatches } = useAppStore();
   const [spot, setSpot] = useState<Spot | undefined>(undefined);
   const [weather, setWeather] = useState<any>(null);
   const [marine, setMarine] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState(0); // 0: hoy, 1: mañana, 2: pasado
+  const [mainTab, setMainTab] = useState(0); // 0: previsión, 1: capturas
 
   useEffect(() => {
     if (spots.length === 0) {
@@ -44,7 +45,8 @@ export const SpotDetailsPage: React.FC = () => {
       const foundSpot = spots.find(s => s.id === Number(id));
       setSpot(foundSpot);
     }
-  }, [spots, id, loadSpots]);
+    loadCatches();
+  }, [spots, id, loadSpots, loadCatches]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -127,6 +129,35 @@ export const SpotDetailsPage: React.FC = () => {
         Añadir Captura
       </Button>
 
+      {/* Tabs principales: Previsión / Capturas */}
+      <Tabs 
+        value={mainTab} 
+        onChange={(_, v) => setMainTab(v)} 
+        variant="fullWidth"
+        sx={{ 
+          mb: 3,
+          '& .MuiTab-root': {
+            color: 'text.secondary',
+            fontWeight: 600,
+            fontSize: '1rem',
+            py: 1.5,
+            '&.Mui-selected': {
+              color: 'primary.main',
+            }
+          },
+          '& .MuiTabs-indicator': {
+            backgroundColor: 'primary.main',
+            height: 4,
+            borderRadius: 4,
+          }
+        }}
+      >
+        <Tab label="⛅ Previsión" />
+        <Tab label={`🎣 Capturas (${catches.filter(c => c.spotId === spot.id).length})`} />
+      </Tabs>
+
+      {mainTab === 0 && (
+      <>
       {loading ? (
         <CircularProgress />
       ) : (
@@ -356,6 +387,109 @@ export const SpotDetailsPage: React.FC = () => {
                   </Box>
               </CardContent>
           </Card>
+        </Box>
+      )}
+      </>
+      )}
+
+      {/* Tab de Capturas */}
+      {mainTab === 1 && (
+        <Box>
+          {catches.filter(c => c.spotId === spot.id).length === 0 ? (
+            <Card sx={{ 
+              p: 4, 
+              textAlign: 'center',
+              background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.05) 0%, rgba(76, 175, 80, 0.05) 100%)',
+              border: '1px solid rgba(0, 188, 212, 0.2)'
+            }}>
+              <Typography color="text.secondary" variant="h6">
+                No hay capturas en esta ubicación
+              </Typography>
+              <Typography color="text.secondary" variant="body2" sx={{ mt: 1 }}>
+                Añade tu primera captura usando el botón de arriba
+              </Typography>
+            </Card>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {catches
+                .filter(c => c.spotId === spot.id)
+                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                .map((c) => (
+                  <Card 
+                    key={c.id}
+                    onClick={() => navigate(`/catch/${c.id}`)}
+                    sx={{ 
+                      background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.05) 0%, rgba(76, 175, 80, 0.05) 100%)',
+                      border: '1px solid rgba(0, 188, 212, 0.2)',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: '0 8px 24px rgba(0, 188, 212, 0.3)'
+                      }
+                    }}
+                  >
+                    <CardContent>
+                      <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                        {c.photoUrl ? (
+                          <Box
+                            component="img"
+                            src={c.photoUrl}
+                            alt={c.species}
+                            sx={{
+                              width: 80,
+                              height: 80,
+                              borderRadius: 2,
+                              objectFit: 'cover',
+                              border: '2px solid rgba(0, 188, 212, 0.3)',
+                            }}
+                          />
+                        ) : (
+                          <Box
+                            sx={{
+                              width: 80,
+                              height: 80,
+                              borderRadius: 2,
+                              bgcolor: 'rgba(0, 188, 212, 0.1)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              border: '2px solid rgba(0, 188, 212, 0.3)',
+                            }}
+                          >
+                            <Typography variant="h3">🐟</Typography>
+                          </Box>
+                        )}
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                            {c.species} {c.weight ? `(${c.weight}kg)` : ''}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                            🕐 {format(new Date(c.date), 'dd/MM/yyyy HH:mm')}
+                          </Typography>
+                          <Box sx={{ 
+                            mt: 1, 
+                            p: 1, 
+                            borderRadius: 1, 
+                            bgcolor: 'rgba(0, 188, 212, 0.1)',
+                            display: 'inline-block'
+                          }}>
+                            <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                              🌡️ {c.weather.temperature}°C | 💨 {c.weather.windSpeed}km/h
+                            </Typography>
+                          </Box>
+                          {c.notes && (
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontStyle: 'italic' }}>
+                              "{c.notes}"
+                            </Typography>
+                          )}
+                        </Box>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                ))}
+            </Box>
+          )}
         </Box>
       )}
     </Box>
