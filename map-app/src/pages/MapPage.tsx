@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import { useAppStore } from '../store/useAppStore';
-import { Box, Dialog, DialogTitle, DialogContent, TextField, Button, MenuItem, Select, FormControl, InputLabel, Typography, IconButton, Tooltip, Menu, ListItemIcon, ListItemText } from '@mui/material';
+import { Box, Dialog, DialogTitle, DialogContent, TextField, Button, MenuItem, Select, FormControl, InputLabel, Typography, IconButton, Tooltip, Menu, ListItemIcon, ListItemText, CircularProgress, Snackbar, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 import LayersIcon from '@mui/icons-material/Layers';
@@ -59,6 +59,8 @@ export const MapPage: React.FC = () => {
   const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [layerMenuAnchor, setLayerMenuAnchor] = useState<null | HTMLElement>(null);
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   useEffect(() => {
     loadSpots();
@@ -67,16 +69,36 @@ export const MapPage: React.FC = () => {
   }, [loadSpots]);
 
   const getCurrentLocation = async () => {
+    setLocating(true);
+    setLocationError(null);
     try {
-      const position = await Geolocation.getCurrentPosition();
+      // Solicitar permisos primero
+      const permission = await Geolocation.checkPermissions();
+      if (permission.location !== 'granted') {
+        const requestResult = await Geolocation.requestPermissions();
+        if (requestResult.location !== 'granted') {
+          throw new Error('Permisos de ubicación denegados');
+        }
+      }
+
+      const position = await Geolocation.getCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      });
       const coords: [number, number] = [position.coords.latitude, position.coords.longitude];
       setUserLocation(coords);
-    } catch (error) {
+      setLocating(false);
+    } catch (error: any) {
       console.error('Error obteniendo ubicación:', error);
+      setLocationError(error.message || 'No se pudo obtener la ubicación');
+      setLocating(false);
     }
   };
 
   const handleCenterOnUser = () => {
+    if (locating) return; // Evitar múltiples intentos simultáneos
+    
     if (userLocation) {
       setMapCenter(userLocation);
     } else {
@@ -116,14 +138,14 @@ export const MapPage: React.FC = () => {
         {/* Capa base según selección */}
         {mapLayer === 'standard' && (
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution=''
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
         )}
         
         {mapLayer === 'satellite' && (
           <TileLayer
-            attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            attribution=''
             url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
           />
         )}
@@ -132,13 +154,13 @@ export const MapPage: React.FC = () => {
           <>
             {/* Mapa base náutico de NOAA (US) */}
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              attribution=''
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               opacity={0.5}
             />
             {/* Capa de cartas náuticas OpenSeaMap */}
             <TileLayer
-              attribution='Map data: &copy; <a href="http://www.openseamap.org">OpenSeaMap</a> contributors'
+              attribution=''
               url="https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png"
             />
           </>
@@ -279,10 +301,11 @@ export const MapPage: React.FC = () => {
           </MenuItem>
         </Menu>
 
-        {/* Botón de geolocalización */}
-        <Tooltip title="Mi ubicación" placement="left">
+        {/* Botón de ubicación */}
+        <Tooltip title={locating ? "Obteniendo ubicación..." : "Mi ubicación"} placement="left">
           <IconButton
             onClick={handleCenterOnUser}
+            disabled={locating}
             sx={{
               bgcolor: 'background.paper',
               boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
@@ -290,14 +313,43 @@ export const MapPage: React.FC = () => {
                 bgcolor: 'primary.main',
                 color: 'white',
               },
+              '&.Mui-disabled': {
+                bgcolor: 'background.paper',
+                opacity: 0.7,
+              },
               width: 48,
               height: 48,
+              position: 'relative',
             }}
           >
-            <MyLocationIcon />
+            {locating ? (
+              <CircularProgress size={24} sx={{ color: 'primary.main' }} />
+            ) : (
+              <MyLocationIcon sx={{ color: userLocation ? 'primary.main' : 'inherit' }} />
+            )}
           </IconButton>
         </Tooltip>
       </Box>
+
+      {/* Snackbar para errores de ubicación */}
+      <Snackbar
+        open={!!locationError}
+        autoHideDuration={4000}
+        onClose={() => setLocationError(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setLocationError(null)} 
+          severity="error" 
+          sx={{ 
+            width: '100%',
+            bgcolor: 'rgba(211, 47, 47, 0.9)',
+            color: 'white'
+          }}
+        >
+          {locationError}
+        </Alert>
+      </Snackbar>
 
       {/* Indicador de capa activa */}
       <Box

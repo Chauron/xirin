@@ -20,10 +20,14 @@ export const Layout: React.FC = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: 'background.default' }}>
-      <AppBar position="static" sx={{ 
-        background: 'linear-gradient(135deg, #0a1929 0%, #1a237e 100%)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
-      }}>
+      <AppBar 
+        position="static" 
+        sx={{ 
+          background: 'linear-gradient(135deg, #0a1929 0%, #1a237e 100%)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+          paddingTop: 'env(safe-area-inset-top)',
+        }}
+      >
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 700, letterSpacing: 1 }}>
             🌊 XIRIN MARINE
@@ -42,7 +46,8 @@ export const Layout: React.FC = () => {
         right: 0, 
         zIndex: 1000,
         background: 'linear-gradient(135deg, #0a1929 0%, #1a237e 100%)',
-        boxShadow: '0 -4px 20px rgba(0,0,0,0.5)'
+        boxShadow: '0 -4px 20px rgba(0,0,0,0.5)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
       }} elevation={3}>
         <BottomNavigation
           showLabels
