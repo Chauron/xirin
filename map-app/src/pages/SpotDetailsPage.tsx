@@ -4,7 +4,7 @@ import { useAppStore } from '../store/useAppStore';
 import type { Spot } from '../models/types';
 import { fetchWeatherForecast, fetchMarineWeather } from '../api/weatherApi';
 import { fetchTideData } from '../api/tideApi';
-import { Box, Typography, Card, CardContent, Button, CircularProgress, IconButton, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip } from '@mui/material';
+import { Box, Typography, Card, CardContent, Button, CircularProgress, IconButton, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -292,37 +292,41 @@ export const SpotDetailsPage: React.FC = () => {
                 boxShadow: '0 8px 32px rgba(0, 150, 200, 0.2)'
               }}
             >
-              <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CardContent sx={{ py: 2 }}>
+                <Typography variant="subtitle1" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 600, mb: 1.5 }}>
                   🌊 Mareas - {format(new Date(tideData.date), 'dd MMM')}
                 </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
                   {tideData.extremes.map((tide: any, index: number) => (
                     <Box 
                       key={index}
                       sx={{ 
-                        flex: '1 1 45%', 
-                        p: 2, 
+                        flex: '1 1 22%', 
+                        minWidth: '100px',
+                        p: 1.5, 
                         borderRadius: 2, 
                         bgcolor: tide.type === 'high' ? 'rgba(0, 188, 212, 0.1)' : 'rgba(76, 175, 80, 0.1)',
-                        border: tide.type === 'high' ? '1px solid rgba(0, 188, 212, 0.3)' : '1px solid rgba(76, 175, 80, 0.3)'
+                        border: tide.type === 'high' ? '1px solid rgba(0, 188, 212, 0.3)' : '1px solid rgba(76, 175, 80, 0.3)',
+                        textAlign: 'center'
                       }}
                     >
-                      <Chip 
-                        label={tide.type === 'high' ? 'Pleamar' : 'Bajamar'}
-                        size="small"
+                      <Typography 
+                        variant="caption" 
                         sx={{ 
-                          mb: 1,
-                          bgcolor: tide.type === 'high' ? 'rgba(0, 188, 212, 0.3)' : 'rgba(76, 175, 80, 0.3)',
-                          color: 'white',
-                          fontWeight: 600
+                          display: 'block',
+                          fontSize: '0.65rem',
+                          color: tide.type === 'high' ? 'primary.main' : 'secondary.main',
+                          fontWeight: 600,
+                          mb: 0.5
                         }}
-                      />
-                      <Typography variant="h4" sx={{ fontWeight: 700, color: tide.type === 'high' ? 'primary.main' : 'secondary.main' }}>
+                      >
+                        {tide.type === 'high' ? 'PLEAMAR' : 'BAJAMAR'}
+                      </Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: tide.type === 'high' ? 'primary.main' : 'secondary.main', lineHeight: 1 }}>
                         {format(new Date(tide.time), 'HH:mm')}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {tide.height.toFixed(2)} m
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                        {tide.height.toFixed(1)}m
                       </Typography>
                     </Box>
                   ))}
