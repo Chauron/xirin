@@ -17,20 +17,31 @@ export const Layout: React.FC = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <AppBar position="static">
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: 'background.default' }}>
+      <AppBar position="static" sx={{ 
+        background: 'linear-gradient(135deg, #0a1929 0%, #1a237e 100%)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+      }}>
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Xirin Marine
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 700, letterSpacing: 1 }}>
+            🌊 XIRIN MARINE
           </Typography>
         </Toolbar>
       </AppBar>
 
-      <Box sx={{ flexGrow: 1, overflow: 'auto', position: 'relative' }}>
+      <Box sx={{ flexGrow: 1, overflow: 'auto', position: 'relative', bgcolor: 'background.default' }}>
         <Outlet />
       </Box>
 
-      <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000 }} elevation={3}>
+      <Paper sx={{ 
+        position: 'fixed', 
+        bottom: 0, 
+        left: 0, 
+        right: 0, 
+        zIndex: 1000,
+        background: 'linear-gradient(135deg, #0a1929 0%, #1a237e 100%)',
+        boxShadow: '0 -4px 20px rgba(0,0,0,0.5)'
+      }} elevation={3}>
         <BottomNavigation
           showLabels
           value={getValue()}
@@ -38,6 +49,15 @@ export const Layout: React.FC = () => {
             if (newValue === 0) navigate('/');
             if (newValue === 1) navigate('/catches');
             if (newValue === 2) navigate('/settings');
+          }}
+          sx={{ 
+            background: 'transparent',
+            '& .MuiBottomNavigationAction-root': {
+              color: 'rgba(255,255,255,0.5)',
+              '&.Mui-selected': {
+                color: '#00bcd4'
+              }
+            }
           }}
         >
           <BottomNavigationAction label="Mapa" icon={<MapIcon />} />

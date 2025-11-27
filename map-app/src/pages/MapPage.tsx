@@ -90,15 +90,35 @@ export const MapPage: React.FC = () => {
         ))}
       </MapContainer>
 
-      <Dialog open={openAddDialog} onClose={() => setOpenAddDialog(false)}>
-          <DialogTitle>Añadir Nuevo Marcador</DialogTitle>
-          <DialogContent>
+      <Dialog open={openAddDialog} onClose={() => setOpenAddDialog(false)} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ 
+            background: 'linear-gradient(135deg, #0a1929 0%, #1a237e 100%)',
+            color: 'white',
+            fontWeight: 700
+          }}>
+            📍 Añadir Nuevo Marcador
+          </DialogTitle>
+          <DialogContent sx={{ mt: 2, bgcolor: 'background.paper' }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
                   <TextField 
                       label="Nombre" 
                       value={newSpotName} 
                       onChange={(e) => setNewSpotName(e.target.value)} 
                       fullWidth 
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          '& fieldset': {
+                            borderColor: 'rgba(0, 188, 212, 0.3)',
+                          },
+                          '&:hover fieldset': {
+                            borderColor: 'rgba(0, 188, 212, 0.5)',
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: 'primary.main',
+                            borderWidth: 2,
+                          },
+                        },
+                      }}
                   />
                   <TextField 
                       label="Descripción" 
@@ -107,25 +127,64 @@ export const MapPage: React.FC = () => {
                       fullWidth 
                       multiline
                       rows={2}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          '& fieldset': {
+                            borderColor: 'rgba(0, 188, 212, 0.3)',
+                          },
+                          '&:hover fieldset': {
+                            borderColor: 'rgba(0, 188, 212, 0.5)',
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: 'primary.main',
+                            borderWidth: 2,
+                          },
+                        },
+                      }}
                   />
                   <FormControl fullWidth>
-                      <InputLabel>Tipo</InputLabel>
+                      <InputLabel sx={{ color: 'primary.main' }}>Tipo</InputLabel>
                       <Select
                           value={newSpotType}
                           label="Tipo"
                           onChange={(e) => setNewSpotType(e.target.value)}
+                          sx={{
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: 'rgba(0, 188, 212, 0.3)',
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: 'rgba(0, 188, 212, 0.5)',
+                            },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                              borderColor: 'primary.main',
+                            }
+                          }}
                       >
-                          <MenuItem value="fishing">Pesca</MenuItem>
-                          <MenuItem value="anchoring">Fondeo</MenuItem>
-                          <MenuItem value="sailing">Navegación</MenuItem>
-                          <MenuItem value="observation">Observación</MenuItem>
-                          <MenuItem value="other">Otro</MenuItem>
+                          <MenuItem value="fishing">🎣 Pesca</MenuItem>
+                          <MenuItem value="anchoring">⚓ Fondeo</MenuItem>
+                          <MenuItem value="sailing">⛵ Navegación</MenuItem>
+                          <MenuItem value="observation">🔭 Observación</MenuItem>
+                          <MenuItem value="other">📌 Otro</MenuItem>
                       </Select>
                   </FormControl>
-                  <Typography variant="caption">
-                      Lat: {newSpotLocation?.lat.toFixed(4)}, Lng: {newSpotLocation?.lng.toFixed(4)}
+                  <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 600 }}>
+                      📍 Lat: {newSpotLocation?.lat.toFixed(4)}, Lng: {newSpotLocation?.lng.toFixed(4)}
                   </Typography>
-                  <Button variant="contained" onClick={handleSaveSpot}>Guardar</Button>
+                  <Button 
+                    variant="contained" 
+                    onClick={handleSaveSpot}
+                    sx={{ 
+                      py: 1.5,
+                      background: 'linear-gradient(45deg, #00bcd4 30%, #4caf50 90%)',
+                      boxShadow: '0 3px 15px rgba(0, 188, 212, 0.3)',
+                      fontWeight: 700,
+                      '&:hover': {
+                        background: 'linear-gradient(45deg, #00acc1 30%, #43a047 90%)',
+                      }
+                    }}
+                  >
+                    Guardar
+                  </Button>
               </Box>
           </DialogContent>
       </Dialog>

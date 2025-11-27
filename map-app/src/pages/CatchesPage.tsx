@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { Box, Typography, List, ListItem, ListItemText, ListItemAvatar, Avatar, Divider } from '@mui/material';
+import { Box, Typography, List, ListItem, ListItemText, ListItemAvatar, Avatar, Card } from '@mui/material';
 import { format } from 'date-fns';
 
 export const CatchesPage: React.FC = () => {
@@ -16,48 +16,88 @@ export const CatchesPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="h5" gutterBottom>Historial de Capturas</Typography>
+    <Box sx={{ p: 2, bgcolor: 'background.default', minHeight: '100vh' }}>
+      <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+        🎣 Historial de Capturas
+      </Typography>
       
       {catches.length === 0 ? (
-          <Typography color="text.secondary">No hay capturas registradas.</Typography>
+          <Card sx={{ 
+            p: 4, 
+            textAlign: 'center',
+            background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.05) 0%, rgba(76, 175, 80, 0.05) 100%)',
+            border: '1px solid rgba(0, 188, 212, 0.2)'
+          }}>
+            <Typography color="text.secondary" variant="h6">
+              No hay capturas registradas
+            </Typography>
+            <Typography color="text.secondary" variant="body2" sx={{ mt: 1 }}>
+              Añade tu primera captura desde un marcador
+            </Typography>
+          </Card>
       ) : (
-          <List>
+          <List sx={{ gap: 2, display: 'flex', flexDirection: 'column' }}>
               {catches.map((c) => (
-                  <React.Fragment key={c.id}>
-                      <ListItem alignItems="flex-start">
-                          <ListItemAvatar>
-                              <Avatar 
-                                src={c.photoUrl} 
-                                variant="rounded"
-                                sx={{ width: 60, height: 60, mr: 2 }}
-                              >
-                                  {c.species.charAt(0)}
-                              </Avatar>
-                          </ListItemAvatar>
-                          <ListItemText
-                              primary={
-                                  <Typography variant="h6">
-                                      {c.species} {c.weight ? `(${c.weight}kg)` : ''}
-                                  </Typography>
-                              }
-                              secondary={
-                                  <React.Fragment>
-                                      <Typography component="span" variant="body2" color="text.primary">
-                                          {getSpotName(c.spotId)}
+                  <Card 
+                    key={c.id}
+                    sx={{ 
+                      background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.05) 0%, rgba(76, 175, 80, 0.05) 100%)',
+                      border: '1px solid rgba(0, 188, 212, 0.2)',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: '0 8px 24px rgba(0, 188, 212, 0.3)'
+                      }
+                    }}
+                  >
+                    <ListItem alignItems="flex-start">
+                        <ListItemAvatar>
+                            <Avatar 
+                              src={c.photoUrl} 
+                              variant="rounded"
+                              sx={{ 
+                                width: 80, 
+                                height: 80, 
+                                mr: 2,
+                                border: '2px solid',
+                                borderColor: 'primary.main'
+                              }}
+                            >
+                                <Typography variant="h4">{c.species.charAt(0)}</Typography>
+                            </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                            primary={
+                                <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                                    {c.species} {c.weight ? `(${c.weight}kg)` : ''}
+                                </Typography>
+                            }
+                            secondary={
+                                <React.Fragment>
+                                    <Typography component="span" variant="body1" sx={{ color: 'text.primary', fontWeight: 600 }}>
+                                        📍 {getSpotName(c.spotId)}
+                                    </Typography>
+                                    <br />
+                                    <Typography component="span" variant="body2" color="text.secondary">
+                                      🕐 {format(new Date(c.date), 'dd/MM/yyyy HH:mm')}
+                                    </Typography>
+                                    <br />
+                                    <Box sx={{ 
+                                      mt: 1, 
+                                      p: 1, 
+                                      borderRadius: 1, 
+                                      bgcolor: 'rgba(0, 188, 212, 0.1)',
+                                      display: 'inline-block'
+                                    }}>
+                                      <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                                          🌡️ {c.weather.temperature}°C | 💨 {c.weather.windSpeed}km/h
                                       </Typography>
-                                      <br />
-                                      {format(new Date(c.date), 'dd/MM/yyyy HH:mm')}
-                                      <br />
-                                      <Typography variant="caption">
-                                          Temp: {c.weather.temperature}°C, Viento: {c.weather.windSpeed}km/h
-                                      </Typography>
-                                  </React.Fragment>
-                              }
-                          />
-                      </ListItem>
-                      <Divider variant="inset" component="li" />
-                  </React.Fragment>
+                                    </Box>
+                                </React.Fragment>
+                            }
+                        />
+                    </ListItem>
+                  </Card>
               ))}
           </List>
       )}

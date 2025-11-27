@@ -64,19 +64,48 @@ export const AddCatchPage: React.FC = () => {
   if (!spot) return <Typography>Spot no encontrado</Typography>;
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ p: 2, bgcolor: 'background.default', minHeight: '100vh' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <IconButton onClick={() => navigate(-1)}><ArrowBackIcon /></IconButton>
-        <Typography variant="h6" sx={{ ml: 1 }}>Nueva Captura en {spot.name}</Typography>
+        <IconButton 
+          onClick={() => navigate(-1)}
+          sx={{ 
+            bgcolor: 'rgba(0, 188, 212, 0.1)', 
+            '&:hover': { bgcolor: 'rgba(0, 188, 212, 0.2)' }
+          }}
+        >
+          <ArrowBackIcon />
+        </IconButton>
+        <Typography variant="h6" sx={{ ml: 1, fontWeight: 700 }}>
+          Nueva Captura en {spot.name}
+        </Typography>
       </Box>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Button variant="outlined" onClick={takePhoto}>
-            {photoUrl ? 'Cambiar Foto' : 'Tomar Foto'}
+        <Button 
+          variant="outlined" 
+          onClick={takePhoto}
+          sx={{ 
+            py: 2,
+            borderWidth: 2,
+            borderColor: 'primary.main',
+            color: 'primary.main',
+            fontWeight: 600,
+            '&:hover': {
+              borderWidth: 2,
+              bgcolor: 'rgba(0, 188, 212, 0.1)'
+            }
+          }}
+        >
+            {photoUrl ? '📸 Cambiar Foto' : '📷 Tomar Foto'}
         </Button>
         
         {photoUrl && (
-            <Card>
+            <Card sx={{ 
+              overflow: 'hidden',
+              border: '2px solid',
+              borderColor: 'primary.main',
+              boxShadow: '0 8px 24px rgba(0, 188, 212, 0.3)'
+            }}>
                 <CardMedia component="img" height="200" image={photoUrl} alt="Captura" />
             </Card>
         )}
@@ -87,6 +116,20 @@ export const AddCatchPage: React.FC = () => {
             onChange={(e) => setSpecies(e.target.value)} 
             fullWidth 
             required
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: 'rgba(0, 188, 212, 0.3)',
+                },
+                '&:hover fieldset': {
+                  borderColor: 'rgba(0, 188, 212, 0.5)',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: 'primary.main',
+                  borderWidth: 2,
+                },
+              },
+            }}
         />
         <TextField 
             label="Peso (kg)" 
@@ -94,6 +137,20 @@ export const AddCatchPage: React.FC = () => {
             value={weight} 
             onChange={(e) => setWeight(e.target.value)} 
             fullWidth 
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: 'rgba(0, 188, 212, 0.3)',
+                },
+                '&:hover fieldset': {
+                  borderColor: 'rgba(0, 188, 212, 0.5)',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: 'primary.main',
+                  borderWidth: 2,
+                },
+              },
+            }}
         />
         <TextField 
             label="Notas" 
@@ -102,6 +159,20 @@ export const AddCatchPage: React.FC = () => {
             fullWidth 
             multiline
             rows={3}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: 'rgba(0, 188, 212, 0.3)',
+                },
+                '&:hover fieldset': {
+                  borderColor: 'rgba(0, 188, 212, 0.5)',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: 'primary.main',
+                  borderWidth: 2,
+                },
+              },
+            }}
         />
 
         <Button 
@@ -109,8 +180,21 @@ export const AddCatchPage: React.FC = () => {
             onClick={handleSave} 
             disabled={loading || !species}
             size="large"
+            sx={{ 
+              py: 1.5,
+              background: 'linear-gradient(45deg, #00bcd4 30%, #4caf50 90%)',
+              boxShadow: '0 3px 15px rgba(0, 188, 212, 0.3)',
+              fontWeight: 700,
+              fontSize: '1.1rem',
+              '&:hover': {
+                background: 'linear-gradient(45deg, #00acc1 30%, #43a047 90%)',
+              },
+              '&:disabled': {
+                background: 'rgba(255, 255, 255, 0.12)'
+              }
+            }}
         >
-            {loading ? 'Guardando...' : 'Guardar Captura'}
+            {loading ? '⏳ Guardando...' : '✅ Guardar Captura'}
         </Button>
       </Box>
     </Box>
