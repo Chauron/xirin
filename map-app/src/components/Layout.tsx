@@ -1,6 +1,7 @@
 import React from 'react';
 import { AppBar, Toolbar, Typography, Box, BottomNavigation, BottomNavigationAction, Paper } from '@mui/material';
 import MapIcon from '@mui/icons-material/Map';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 import ListIcon from '@mui/icons-material/List';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
@@ -11,8 +12,9 @@ export const Layout: React.FC = () => {
 
   const getValue = () => {
     if (location.pathname === '/' || location.pathname.startsWith('/map')) return 0;
-    if (location.pathname.startsWith('/catches')) return 1;
-    if (location.pathname.startsWith('/settings')) return 2;
+    if (location.pathname.startsWith('/spots') || location.pathname.startsWith('/spot')) return 1;
+    if (location.pathname.startsWith('/catches') || location.pathname.startsWith('/catch')) return 2;
+    if (location.pathname.startsWith('/settings')) return 3;
     return 0;
   };
 
@@ -46,9 +48,10 @@ export const Layout: React.FC = () => {
           showLabels
           value={getValue()}
           onChange={(_, newValue) => {
-            if (newValue === 0) navigate('/');
-            if (newValue === 1) navigate('/catches');
-            if (newValue === 2) navigate('/settings');
+            if (newValue === 0) navigate('/map');
+            if (newValue === 1) navigate('/spots');
+            if (newValue === 2) navigate('/catches');
+            if (newValue === 3) navigate('/settings');
           }}
           sx={{ 
             background: 'transparent',
@@ -61,6 +64,7 @@ export const Layout: React.FC = () => {
           }}
         >
           <BottomNavigationAction label="Mapa" icon={<MapIcon />} />
+          <BottomNavigationAction label="Ubicaciones" icon={<LocationOnIcon />} />
           <BottomNavigationAction label="Capturas" icon={<ListIcon />} />
           <BottomNavigationAction label="Ajustes" icon={<SettingsIcon />} />
         </BottomNavigation>

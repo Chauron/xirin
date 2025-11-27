@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { MapPage } from './pages/MapPage';
+import SpotsPage from './pages/SpotsPage';
 import { SpotDetailsPage } from './pages/SpotDetailsPage';
 import { AddCatchPage } from './pages/AddCatchPage';
 import { CatchesPage } from './pages/CatchesPage';
@@ -67,6 +68,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<MapPage />} />
+            <Route path="map" element={<MapPage />} />
+            <Route path="spots" element={<SpotsPage />} />
             <Route path="spot/:id" element={<SpotDetailsPage />} />
             <Route path="add-catch/:spotId" element={<AddCatchPage />} />
             <Route path="catches" element={<CatchesPage />} />
