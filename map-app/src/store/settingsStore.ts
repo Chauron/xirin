@@ -21,7 +21,7 @@ interface SettingsState {
   loadSettings: () => void;
 }
 
-export const useSettingsStore = create<SettingsState>((set, get) => ({
+export const useSettingsStore = create<SettingsState>((set) => ({
   settings: defaultSettings,
 
   setUnits: (units) => set(state => {
