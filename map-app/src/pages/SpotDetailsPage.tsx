@@ -28,7 +28,8 @@ const getWindArrow = (deg: number) => {
   const arrows = ['↑','↗','→','↘','↓','↙','←','↖'];
   return arrows[Math.round(deg/45)%8];
 };
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export const SpotDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -204,9 +205,9 @@ export const SpotDetailsPage: React.FC = () => {
               }
             }}
           >
-            <Tab label="Hoy" />
-            <Tab label="Mañana" />
-            <Tab label="Pasado" />
+            <Tab label={`Hoy (${format(new Date(), 'd MMM', { locale: es })})`} />
+            <Tab label={`Mañana (${format(addDays(new Date(), 1), 'd MMM', { locale: es })})`} />
+            <Tab label={`Pasado (${format(addDays(new Date(), 2), 'd MMM', { locale: es })})`} />
           </Tabs>
 
           {/* Estado actual - solo para el día de hoy */}
@@ -294,39 +295,48 @@ export const SpotDetailsPage: React.FC = () => {
                   🌊 Mareas - {format(new Date(tideData.date), 'dd MMM')}
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
-                  {tideData.extremes.map((tide: any, index: number) => (
-                    <Box 
-                      key={index}
-                      sx={{ 
-                        flex: '1 1 22%', 
-                        minWidth: '100px',
-                        p: 1.5, 
-                        borderRadius: 2, 
-                        bgcolor: tide.type === 'high' ? 'rgba(0, 188, 212, 0.1)' : 'rgba(76, 175, 80, 0.1)',
-                        border: tide.type === 'high' ? '1px solid rgba(0, 188, 212, 0.3)' : '1px solid rgba(76, 175, 80, 0.3)',
-                        textAlign: 'center'
-                      }}
-                    >
-                      <Typography 
-                        variant="caption" 
+                  {tideData.extremes.map((tide: any, index: number) => {
+                    // Validate tide.time before parsing
+                    const tideTime = new Date(tide.time);
+                    if (isNaN(tideTime.getTime())) {
+                      console.warn('Invalid tide time:', tide.time);
+                      return null;
+                    }
+                    
+                    return (
+                      <Box 
+                        key={index}
                         sx={{ 
-                          display: 'block',
-                          fontSize: '0.65rem',
-                          color: tide.type === 'high' ? 'primary.main' : 'secondary.main',
-                          fontWeight: 600,
-                          mb: 0.5
+                          flex: '1 1 22%', 
+                          minWidth: '100px',
+                          p: 1.5, 
+                          borderRadius: 2, 
+                          bgcolor: tide.type === 'high' ? 'rgba(0, 188, 212, 0.1)' : 'rgba(76, 175, 80, 0.1)',
+                          border: tide.type === 'high' ? '1px solid rgba(0, 188, 212, 0.3)' : '1px solid rgba(76, 175, 80, 0.3)',
+                          textAlign: 'center'
                         }}
                       >
-                        {tide.type === 'high' ? 'PLEAMAR' : 'BAJAMAR'}
-                      </Typography>
-                      <Typography variant="h6" sx={{ fontWeight: 700, color: tide.type === 'high' ? 'primary.main' : 'secondary.main', lineHeight: 1 }}>
-                        {format(new Date(tide.time), 'HH:mm')}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
-                        {formatValue(convertWaveHeight(tide.height, settings.units))}{getWaveHeightUnit(settings.units)}
-                      </Typography>
-                    </Box>
-                  ))}
+                        <Typography 
+                          variant="caption" 
+                          sx={{ 
+                            display: 'block',
+                            fontSize: '0.65rem',
+                            color: tide.type === 'high' ? 'primary.main' : 'secondary.main',
+                            fontWeight: 600,
+                            mb: 0.5
+                          }}
+                        >
+                          {tide.type === 'high' ? 'PLEAMAR' : 'BAJAMAR'}
+                        </Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: tide.type === 'high' ? 'primary.main' : 'secondary.main', lineHeight: 1 }}>
+                          {format(tideTime, 'HH:mm')}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                          {formatValue(convertWaveHeight(tide.height, settings.units))}{getWaveHeightUnit(settings.units)}
+                        </Typography>
+                      </Box>
+                    );
+                  }).filter(Boolean)}
                 </Box>
               </CardContent>
             </Card>

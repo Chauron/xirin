@@ -864,15 +864,11 @@ export function CatchDetailsPage() {
                 sx={{ 
                   bgcolor: 'action.hover',
                   borderRadius: 2,
-                  maxHeight: 500,
                   '& .MuiTableCell-head': {
                     bgcolor: 'rgba(0, 188, 212, 0.1)',
                     fontWeight: 700,
                     color: 'primary.main',
                     opacity: 1,
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 10,
                   },
                   '& .MuiTableRow-root:hover': {
                     bgcolor: 'rgba(0, 188, 212, 0.05)'
@@ -886,16 +882,16 @@ export function CatchDetailsPage() {
                   }
                 }}
               >
-                <Table size="small" stickyHeader>
+                <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell align="center" sx={{ minWidth: 60, py: 1.5 }}>Hora</TableCell>
-                      <TableCell align="center" sx={{ minWidth: 40, py: 1.5 }}>☁️<br/>Tiempo</TableCell>
-                      <TableCell align="center" sx={{ minWidth: 100, py: 1.5 }}>💨<br/>Viento</TableCell>
-                      <TableCell align="center" sx={{ minWidth: 100, py: 1.5 }}>🌊<br/>Oleaje</TableCell>
-                      <TableCell align="center" sx={{ minWidth: 60, py: 1.5 }}>🌡️<br/>Temp</TableCell>
-                      <TableCell align="center" sx={{ minWidth: 70, py: 1.5 }}>📊<br/>Presión</TableCell>
-                      <TableCell align="center" sx={{ minWidth: 60, py: 1.5 }}>☁️<br/>Nubes</TableCell>
+                      <TableCell align="center" sx={{ py: 1.5 }}>🕐<br/>Hora</TableCell>                      
+                      <TableCell align="center" sx={{ py: 1.5 }}>💨<br/>Viento</TableCell>
+                      <TableCell align="center" sx={{ py: 1.5 }}>🌊<br/>Oleaje</TableCell>
+                      <TableCell align="center" sx={{ py: 1.5 }}>🌡️<br/>Temp</TableCell>
+                      <TableCell align="center" sx={{ py: 1.5 }}>📊<br/>Presión</TableCell>
+                      <TableCell align="center" sx={{ py: 1.5 }}>☁️<br/>Nubes</TableCell>
+                      <TableCell align="center" sx={{ py: 1.5 }}>☁️<br/>Tiempo</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -912,10 +908,7 @@ export function CatchDetailsPage() {
                                 📍 CAPTURA
                               </Typography>
                             )}
-                          </TableCell>
-                          <TableCell align="center" sx={{ fontSize: '1.2rem' }}>
-                            {getSkyIcon(hour)}
-                          </TableCell>
+                          </TableCell>                          
                           <TableCell align="center">
                             {formatValue(convertSpeed(hourData.windSpeed, settings.units), 0)} {getSpeedUnit(settings.units)}
                             <br/>
@@ -940,6 +933,9 @@ export function CatchDetailsPage() {
                           </TableCell>
                           <TableCell align="center">
                             {hourData.cloudCover !== undefined ? `${hourData.cloudCover}%` : '-'}
+                          </TableCell>
+                          <TableCell align="center" sx={{ fontSize: '1.2rem' }}>
+                            {getSkyIcon(hour)}
                           </TableCell>
                         </TableRow>
                       );

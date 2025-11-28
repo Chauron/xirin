@@ -12,6 +12,7 @@ import DirectionsBoatIcon from '@mui/icons-material/DirectionsBoat';
 import AddIcon from '@mui/icons-material/Add';
 import AddLocationIcon from '@mui/icons-material/AddLocation';
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
+import ExploreIcon from '@mui/icons-material/Explore';
 import { Geolocation } from '@capacitor/geolocation';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -28,6 +29,15 @@ let DefaultIcon = L.icon({
 });
 
 L.Marker.prototype.options.icon = DefaultIcon;
+
+// Helper function to get cardinal direction from degrees
+const getCardinalDirection = (degrees: number, short: boolean = false): string => {
+  const directions = short 
+    ? ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+    : ['Norte', 'Noreste', 'Este', 'Sureste', 'Sur', 'Suroeste', 'Oeste', 'Noroeste'];
+  const index = Math.round(degrees / 45) % 8;
+  return directions[index];
+};
 
 // Componente para controlar el centrado del mapa
 const MapController = ({ center, zoom }: { center: [number, number] | null; zoom?: number }) => {
@@ -70,13 +80,35 @@ export const MapPage: React.FC = () => {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [speedDialOpen, setSpeedDialOpen] = useState(false);
   const [selectingOnMap, setSelectingOnMap] = useState(false);
+  const [heading, setHeading] = useState<number>(0);
 
   useEffect(() => {
-    setPageTitle('🌊 XIRIN MARINE');
+    // No heading en el mapa, solo icono en la brújula
+    setPageTitle('');
     setShowBackButton(false);
     loadSpots();
     // Obtener ubicación inicial del usuario
     getCurrentLocation();
+    
+    // Watch heading changes
+    let watchId: string;
+    const startWatching = async () => {
+      watchId = await Geolocation.watchPosition({
+        enableHighAccuracy: true,
+      }, (position) => {
+        if (position && position.coords.heading !== null && position.coords.heading !== undefined) {
+          setHeading(position.coords.heading);
+        }
+      });
+    };
+    
+    startWatching();
+
+    return () => {
+      if (watchId) {
+        Geolocation.clearWatch({ id: watchId });
+      }
+    };
   }, [loadSpots, setPageTitle, setShowBackButton]);
 
   const getCurrentLocation = async () => {
@@ -166,7 +198,7 @@ export const MapPage: React.FC = () => {
 
   return (
     <Box sx={{ height: '100%', width: '100%', position: 'relative' }}>
-      <MapContainer center={[40.416775, -3.703790]} zoom={6} style={{ height: '100%', width: '100%' }}>
+      <MapContainer center={[40.416775, -3.703790]} zoom={6} style={{ height: '100%', width: '100%' }} zoomControl={false}>
         {/* Capa base según selección */}
         {mapLayer === 'standard' && (
           <TileLayer
@@ -236,11 +268,142 @@ export const MapPage: React.FC = () => {
         ))}
       </MapContainer>
 
-      {/* Controles flotantes */}
+      {/* Compass/GPS heading indicator */}
       <Box
         sx={{
           position: 'absolute',
           top: 16,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 1000,
+          bgcolor: 'background.paper',
+          borderRadius: 3,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+          px: 3,
+          py: 1.5,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          minWidth: 280,
+        }}
+      >
+        {/* Compass rose */}
+        <Box
+          sx={{
+            position: 'relative',
+            width: 50,
+            height: 50,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {/* Compass background */}
+          <Box
+            sx={{
+              position: 'absolute',
+              width: '100%',
+              height: '100%',
+              borderRadius: '50%',
+              border: '2px solid',
+              borderColor: 'primary.main',
+              bgcolor: 'action.hover',
+            }}
+          />
+          
+          {/* Cardinal directions */}
+          <Typography
+            sx={{
+              position: 'absolute',
+              top: -2,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              color: 'error.main',
+            }}
+          >
+            N
+          </Typography>
+          <Typography
+            sx={{
+              position: 'absolute',
+              right: 4,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              fontSize: '0.6rem',
+              fontWeight: 600,
+              color: 'text.secondary',
+            }}
+          >
+            E
+          </Typography>
+          <Typography
+            sx={{
+              position: 'absolute',
+              bottom: -2,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              fontSize: '0.6rem',
+              fontWeight: 600,
+              color: 'text.secondary',
+            }}
+          >
+            S
+          </Typography>
+          <Typography
+            sx={{
+              position: 'absolute',
+              left: 4,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              fontSize: '0.6rem',
+              fontWeight: 600,
+              color: 'text.secondary',
+            }}
+          >
+            W
+          </Typography>
+
+          {/* Needle/Arrow */}
+          <ExploreIcon
+            sx={{
+              position: 'absolute',
+              fontSize: '2rem',
+              color: 'primary.main',
+              transform: `rotate(${heading}deg)`,
+              transition: 'transform 0.3s ease-out',
+              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+            }}
+          />
+        </Box>
+
+        {/* GPS Info */}
+        <Box sx={{ flex: 1 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
+              Rumbo del GPS
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
+              Rumbo
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1 }}>
+              {Math.round(heading)}° {getCardinalDirection(heading)}
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1 }}>
+              {Math.round(heading)}° {getCardinalDirection(heading, true)}
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+
+      {/* Controles flotantes */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 128,
           right: 16,
           zIndex: 1000,
           display: 'flex',

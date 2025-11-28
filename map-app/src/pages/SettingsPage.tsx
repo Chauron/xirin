@@ -30,10 +30,7 @@ export const SettingsPage: React.FC = () => {
   return (
     <Box sx={{ p: 2, bgcolor: 'background.default', minHeight: '100vh', pb: 10 }}>
       <List sx={{ gap: 1, display: 'flex', flexDirection: 'column' }}>
-        <Card sx={{ 
-          background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.05) 0%, rgba(76, 175, 80, 0.05) 100%)',
-          border: '1px solid rgba(0, 188, 212, 0.2)'
-        }}>
+
           <ListItem>
             <FormControl fullWidth>
               <InputLabel sx={{ color: 'primary.main' }}>Unidades</InputLabel>
@@ -58,12 +55,8 @@ export const SettingsPage: React.FC = () => {
               </Select>
             </FormControl>
           </ListItem>
-        </Card>
+
         <Divider />
-        <Card sx={{ 
-          background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.05) 0%, rgba(76, 175, 80, 0.05) 100%)',
-          border: '1px solid rgba(0, 188, 212, 0.2)'
-        }}>
           <ListItem>
             <FormControl fullWidth>
               <InputLabel sx={{ color: 'primary.main' }}>Proveedor de Tiempo</InputLabel>
@@ -88,12 +81,7 @@ export const SettingsPage: React.FC = () => {
               </Select>
             </FormControl>
           </ListItem>
-        </Card>
         <Divider />
-        <Card sx={{ 
-          background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.05) 0%, rgba(76, 175, 80, 0.05) 100%)',
-          border: '1px solid rgba(0, 188, 212, 0.2)'
-        }}>
           <ListItem>
             <FormControl fullWidth>
               <InputLabel sx={{ color: 'primary.main' }}>Proveedor de Mareas</InputLabel>
@@ -121,12 +109,7 @@ export const SettingsPage: React.FC = () => {
               </Select>
             </FormControl>
           </ListItem>
-        </Card>
         <Divider />
-        <Card sx={{ 
-          background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.05) 0%, rgba(76, 175, 80, 0.05) 100%)',
-          border: '1px solid rgba(0, 188, 212, 0.2)'
-        }}>
           <ListItem>
             <FormControl fullWidth>
               <InputLabel sx={{ color: 'primary.main' }}>Proveedor de Oleaje</InputLabel>
@@ -151,12 +134,7 @@ export const SettingsPage: React.FC = () => {
               </Select>
             </FormControl>
           </ListItem>
-        </Card>
         <Divider />
-        <Card sx={{ 
-          background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.05) 0%, rgba(76, 175, 80, 0.05) 100%)',
-          border: '1px solid rgba(0, 188, 212, 0.2)'
-        }}>
           <ListItem>
             <FormControl fullWidth>
               <InputLabel sx={{ color: 'primary.main' }}>Idioma</InputLabel>
@@ -181,7 +159,6 @@ export const SettingsPage: React.FC = () => {
               </Select>
             </FormControl>
           </ListItem>
-        </Card>
         <Divider />
         <Card sx={{ 
           background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.05) 0%, rgba(76, 175, 80, 0.05) 100%)',
