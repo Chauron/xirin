@@ -433,7 +433,7 @@ export const SpotDetailsPage: React.FC = () => {
               <TableContainer 
                 component={Paper} 
                 sx={{ 
-                  bgcolor: 'rgba(0, 0, 0, 0.2)',
+                  bgcolor: 'action.hover',
                   borderRadius: 2,
                   '& .MuiTableCell-head': {
                     bgcolor: 'rgba(0, 188, 212, 0.1)',

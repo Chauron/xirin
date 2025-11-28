@@ -23,8 +23,6 @@ import {
   Paper,
 } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import { useAppStore } from '../store/useAppStore';
 import { useSettingsStore } from '../store/settingsStore';
 import { useLayoutContext } from '../components/Layout';
@@ -154,7 +152,7 @@ export function CatchDetailsPage() {
                 🐟
               </Avatar>
               <Box sx={{ flex: 1 }}>
-                <Typography variant="h5" sx={{ fontWeight: 600, color: '#fff' }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: 'text.primary' }}>
                   {catchData.species}
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -216,8 +214,8 @@ export function CatchDetailsPage() {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: '#fff',
-                      bgcolor: 'rgba(255, 255, 255, 0.05)',
+                      color: 'text.primary',
+                      bgcolor: 'action.hover',
                       p: 2,
                       borderRadius: 1,
                       border: '1px solid rgba(0, 188, 212, 0.1)',
@@ -243,7 +241,7 @@ export function CatchDetailsPage() {
             <CardContent>
               <Typography
                 variant="h6"
-                sx={{ mb: 2, fontWeight: 600, color: '#fff', display: 'flex', alignItems: 'center', gap: 1 }}
+                sx={{ mb: 2, fontWeight: 600, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}
               >
                 🌊 Mareas del Día
               </Typography>
@@ -304,7 +302,7 @@ export function CatchDetailsPage() {
                           >
                             {tide.type === 'high' ? 'PLEAMAR' : 'BAJAMAR'}
                           </Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 700, color: '#fff' }}>
+                          <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary' }}>
                             {format(tideTime, 'HH:mm')}
                           </Typography>
                           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -401,7 +399,7 @@ export function CatchDetailsPage() {
             <CardContent>
               <Typography
                 variant="h6"
-                sx={{ mb: 2, fontWeight: 600, color: '#fff', display: 'flex', alignItems: 'center', gap: 1 }}
+                sx={{ mb: 2, fontWeight: 600, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}
               >
                 ⛅ Condiciones en el Momento
               </Typography>
@@ -422,7 +420,7 @@ export function CatchDetailsPage() {
                   <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
                     🌡️ Temperatura
                   </Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#fff' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
                     {formatValue(convertTemperature(weather.temperature, settings.units))}{getTemperatureUnit(settings.units)}
                   </Typography>
                 </Box>
@@ -442,7 +440,7 @@ export function CatchDetailsPage() {
                   <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
                     💨 Viento
                   </Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#fff' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
                     {formatValue(convertSpeed(weather.windSpeed, settings.units), 0)} {getSpeedUnit(settings.units)}
                   </Typography>
                 </Box>
@@ -462,7 +460,7 @@ export function CatchDetailsPage() {
                   <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
                     🧭 Dirección
                   </Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#fff' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
                     {getWindArrow(weather.windDirection)} {weather.windDirection}°
                   </Typography>
                 </Box>
@@ -596,7 +594,8 @@ export function CatchDetailsPage() {
                                 cy={getY(prevTide.height)}
                                 r="6"
                                 fill={prevTide.type === 'high' ? '#00bcd4' : '#f44336'}
-                                stroke="rgba(255,255,255,0.3)"
+                                stroke="currentColor"
+                                strokeOpacity="0.3"
                                 strokeWidth="2"
                               />
 
@@ -606,7 +605,8 @@ export function CatchDetailsPage() {
                                 cy={getY(nextTide.height)}
                                 r="6"
                                 fill={nextTide.type === 'high' ? '#00bcd4' : '#f44336'}
-                                stroke="rgba(255,255,255,0.3)"
+                                stroke="currentColor"
+                                strokeOpacity="0.3"
                                 strokeWidth="2"
                               />
 
@@ -643,7 +643,8 @@ export function CatchDetailsPage() {
                               <text
                                 x={padding}
                                 y={height - 5}
-                                fill="rgba(255,255,255,0.7)"
+                                fill="currentColor"
+                                opacity="0.7"
                                 fontSize="10"
                                 textAnchor="middle"
                               >
@@ -653,7 +654,8 @@ export function CatchDetailsPage() {
                               <text
                                 x={width - padding}
                                 y={height - 5}
-                                fill="rgba(255,255,255,0.7)"
+                                fill="currentColor"
+                                opacity="0.7"
                                 fontSize="10"
                                 textAnchor="middle"
                               >
@@ -742,7 +744,7 @@ export function CatchDetailsPage() {
                     <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
                       📊 Presión
                     </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#fff' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
                       {weather.pressure} hPa
                     </Typography>
                   </Box>
@@ -764,7 +766,7 @@ export function CatchDetailsPage() {
                     <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
                       ☁️ Nubes
                     </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#fff' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
                       {weather.cloudCover}%
                     </Typography>
                   </Box>
@@ -786,7 +788,7 @@ export function CatchDetailsPage() {
                     <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
                       🌊 Oleaje
                     </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#fff' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
                       {formatValue(convertWaveHeight(weather.waveHeight, settings.units))} {getWaveHeightUnit(settings.units)}
                     </Typography>
                   </Box>
@@ -808,7 +810,7 @@ export function CatchDetailsPage() {
                     <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
                       ⏱️ Periodo
                     </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#fff' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
                       {weather.wavePeriod} s
                     </Typography>
                   </Box>
@@ -830,7 +832,7 @@ export function CatchDetailsPage() {
                     <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
                       🌊 Dirección Ola
                     </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#fff' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
                       {getWindArrow(weather.waveDirection)} {weather.waveDirection}°
                     </Typography>
                   </Box>
@@ -852,7 +854,7 @@ export function CatchDetailsPage() {
             <CardContent>
               <Typography
                 variant="h6"
-                sx={{ mb: 2, fontWeight: 600, color: '#fff', display: 'flex', alignItems: 'center', gap: 1 }}
+                sx={{ mb: 2, fontWeight: 600, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}
               >
                 📊 Datos del Día Completo
               </Typography>
@@ -860,7 +862,7 @@ export function CatchDetailsPage() {
               <TableContainer 
                 component={Paper} 
                 sx={{ 
-                  bgcolor: 'rgba(0, 0, 0, 0.2)',
+                  bgcolor: 'action.hover',
                   borderRadius: 2,
                   maxHeight: 500,
                   '& .MuiTableCell-head': {
@@ -953,7 +955,6 @@ export function CatchDetailsPage() {
         <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
           <Button
             variant="contained"
-            startIcon={<EditIcon />}
             onClick={handleEdit}
             fullWidth
             sx={{
@@ -966,12 +967,10 @@ export function CatchDetailsPage() {
                 background: 'linear-gradient(45deg, #00acc1 30%, #43a047 90%)',
               }
             }}
-          >
-            ✏️ Editar Captura
+          >Editar Captura
           </Button>
           <Button
             variant="contained"
-            startIcon={<DeleteIcon />}
             onClick={handleDeleteClick}
             fullWidth
             sx={{
@@ -984,8 +983,7 @@ export function CatchDetailsPage() {
                 background: 'linear-gradient(45deg, #d32f2f 30%, #c2185b 90%)',
               }
             }}
-          >
-            🗑️ Eliminar
+          > Eliminar
           </Button>
         </Box>
       </Box>
@@ -996,13 +994,13 @@ export function CatchDetailsPage() {
         onClose={handleDeleteCancel}
         PaperProps={{
           sx: {
-            bgcolor: '#1a1a2e',
+            bgcolor: 'background.paper',
             border: '2px solid rgba(244, 67, 54, 0.5)',
             boxShadow: '0 8px 32px rgba(244, 67, 54, 0.3)',
           }
         }}
       >
-        <DialogTitle sx={{ color: '#fff', fontWeight: 600 }}>
+        <DialogTitle sx={{ color: 'text.primary', fontWeight: 600 }}>
           ⚠️ Confirmar eliminación
         </DialogTitle>
         <DialogContent>
@@ -1016,7 +1014,7 @@ export function CatchDetailsPage() {
             sx={{ 
               color: 'text.secondary',
               '&:hover': {
-                bgcolor: 'rgba(255, 255, 255, 0.05)'
+                bgcolor: 'action.hover'
               }
             }}
           >
