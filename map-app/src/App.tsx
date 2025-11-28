@@ -10,6 +10,8 @@ import { SettingsPage } from './pages/SettingsPage';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import { useSettingsStore } from './store/settingsStore';
 import { useEffect, useMemo } from 'react';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { Capacitor } from '@capacitor/core';
 
 function App() {
   const { settings, loadSettings } = useSettingsStore();
@@ -17,6 +19,28 @@ function App() {
   useEffect(() => {
     loadSettings();
   }, [loadSettings]);
+
+  // Configure status bar for native platforms
+  useEffect(() => {
+    const configureStatusBar = async () => {
+      if (Capacitor.isNativePlatform()) {
+        try {
+          // Set status bar style to Light (white icons on dark background)
+          await StatusBar.setStyle({ style: Style.Light });
+          
+          // Set dark semi-transparent background
+          await StatusBar.setBackgroundColor({ color: '#CC000000' });
+          
+          // Don't overlay - let it be part of the layout
+          await StatusBar.setOverlaysWebView({ overlay: false });
+        } catch (error) {
+          console.error('Error configuring status bar:', error);
+        }
+      }
+    };
+    
+    configureStatusBar();
+  }, []);
 
   const theme = useMemo(() => createTheme({
     palette: {

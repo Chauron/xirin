@@ -1,5 +1,12 @@
 {
   "appId": "dev.chauron.xirin",
   "appName": "Xirin",
-  "webDir": "dist"
+  "webDir": "dist",
+  "plugins": {
+    "StatusBar": {
+      "style": "LIGHT",
+      "backgroundColor": "#CC000000",
+      "overlaysWebView": false
+    }
+  }
 }
