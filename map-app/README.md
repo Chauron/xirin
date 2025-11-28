@@ -149,21 +149,43 @@ npx cap open ios     # Abrir Xcode
 
 ## 🌐 APIs Utilizadas
 
-### Open-Meteo Weather API
+### ✅ Open-Meteo Weather API (DATOS REALES)
 - **URL**: https://api.open-meteo.com/v1/forecast
 - **Datos**: Temperatura, viento, humedad, presión, nubes
+- **Estado**: ✅ **INTEGRADO Y FUNCIONANDO**
 - **Licencia**: CC BY 4.0
 - **Rate limit**: Uso razonable (sin límite estricto)
 
-### Open-Meteo Marine API
+### ✅ Open-Meteo Marine API (DATOS REALES)
 - **URL**: https://marine-api.open-meteo.com/v1/marine
 - **Datos**: Altura de olas, periodo, dirección
+- **Estado**: ✅ **INTEGRADO Y FUNCIONANDO**
 - **Cobertura**: Océanos y mares principales
 
-### Futuras integraciones
-- AEMET (España) para mayor precisión local
-- NOAA Open Data para mareas
-- APIs de predicción de mareas (OpenTidePrediction)
+### 🌊 APIs de Mareas (3 Opciones Implementadas)
+
+#### 🌍 WorldTides API - IMPLEMENTADA
+- **Estado**: ✅ **CÓDIGO COMPLETO - Requiere configuración**
+- **Cobertura**: Global (todos los océanos)
+- **Costo**: ~$10/mes (1000 requests)
+- **Setup**: Ver [TIDE_SETUP_GUIDE.md](./TIDE_SETUP_GUIDE.md)
+
+#### 🇺🇸 NOAA CO-OPS API - IMPLEMENTADA  
+- **Estado**: ✅ **CÓDIGO COMPLETO - Lista para usar**
+- **Cobertura**: Estados Unidos (estaciones costeras)
+- **Costo**: GRATIS
+- **Setup**: Funciona automáticamente en USA
+
+#### �🇸 Puertos del Estado - IMPLEMENTADA
+- **Estado**: ⚠️ **CÓDIGO COMPLETO - Pendiente API access**
+- **Cobertura**: Puertos españoles
+- **Costo**: GRATIS (requiere solicitud de acceso)
+- **Contacto**: oceanografia@puertos.es
+
+#### 📝 Guías de Configuración
+- **Guía rápida**: [TIDE_SETUP_GUIDE.md](./TIDE_SETUP_GUIDE.md)
+- **Detalles técnicos**: [src/api/REAL_TIDE_APIS.md](./src/api/REAL_TIDE_APIS.md)
+- **Estado actual**: [API_STATUS.md](./API_STATUS.md)
 
 ## 📝 Modelo de Datos
 
@@ -216,7 +238,7 @@ npx cap open ios     # Abrir Xcode
 
 ## 🐛 Problemas Conocidos
 
-- **Mareas**: No implementadas aún (falta integración API)
+- **Mareas**: Por defecto usa datos SIMULADOS. Para usar datos REALES ver [TIDE_SETUP_GUIDE.md](./TIDE_SETUP_GUIDE.md)
 - **Offline**: Sin caché de APIs (próxima versión)
 - **Performance**: Gráficas pueden ser lentas con >500 puntos
 - **iOS**: No testeado en dispositivo real (solo simulador)

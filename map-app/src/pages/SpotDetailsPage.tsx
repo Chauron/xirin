@@ -263,19 +263,7 @@ export const SpotDetailsPage: React.FC = () => {
                       <Typography variant="h5" sx={{ fontWeight: 600 }}>
                         {weather?.current?.pressure_msl} hPa
                       </Typography>
-                  </Box>
-                  <Box sx={{ 
-                    flex: '1 1 45%', 
-                    p: 2, 
-                    borderRadius: 2, 
-                    bgcolor: 'rgba(0, 188, 212, 0.1)',
-                    border: '1px solid rgba(0, 188, 212, 0.2)'
-                  }}>
-                      <Typography variant="body2" color="text.secondary">💧 Humedad</Typography>
-                      <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                        {weather?.current?.relative_humidity_2m}%
-                      </Typography>
-                  </Box>
+                  </Box>                  
               </Box>
             </CardContent>
           </Card>

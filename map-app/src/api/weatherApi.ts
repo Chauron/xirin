@@ -6,6 +6,7 @@ const OPEN_METEO_WEATHER_URL = 'https://api.open-meteo.com/v1/forecast';
 
 export const fetchMarineWeather = async (lat: number, lng: number) => {
   try {
+    console.log(`Fetching REAL marine data from Open-Meteo for: ${lat}, ${lng}`);
     const response = await axios.get(OPEN_METEO_MARINE_URL, {
       params: {
         latitude: lat,
@@ -15,6 +16,7 @@ export const fetchMarineWeather = async (lat: number, lng: number) => {
         forecast_days: 3
       }
     });
+    console.log('Marine API response received:', response.data ? '✓ Data available' : '✗ No data');
     return response.data;
   } catch (error) {
     console.error('Error fetching marine weather:', error);
@@ -24,6 +26,7 @@ export const fetchMarineWeather = async (lat: number, lng: number) => {
 
 export const fetchWeatherForecast = async (lat: number, lng: number) => {
   try {
+    console.log(`Fetching REAL weather data from Open-Meteo for: ${lat}, ${lng}`);
     const response = await axios.get(OPEN_METEO_WEATHER_URL, {
       params: {
         latitude: lat,
@@ -34,6 +37,7 @@ export const fetchWeatherForecast = async (lat: number, lng: number) => {
         forecast_days: 3
       }
     });
+    console.log('Weather API response received:', response.data ? '✓ Data available' : '✗ No data');
     return response.data;
   } catch (error) {
     console.error('Error fetching weather forecast:', error);
@@ -43,30 +47,45 @@ export const fetchWeatherForecast = async (lat: number, lng: number) => {
 
 // Helper to get current conditions for a catch
 export const getCurrentConditions = async (lat: number, lng: number) => {
-    const weather = await fetchWeatherForecast(lat, lng);
-    // const marine = await fetchMarineWeather(lat, lng); // Available for future use
+    try {
+        const weather = await fetchWeatherForecast(lat, lng);
+        
+        if (!weather || !weather.current) {
+            console.error('No weather data received from Open-Meteo API');
+            return null;
+        }
 
-    if (!weather || !weather.current) return null;
+        console.log('Real weather data from Open-Meteo:', {
+            temp: weather.current.temperature_2m,
+            wind: weather.current.wind_speed_10m,
+            direction: weather.current.wind_direction_10m
+        });
 
-    return {
-        temperature: weather.current.temperature_2m,
-        windSpeed: weather.current.wind_speed_10m,
-        windDirection: weather.current.wind_direction_10m,
-        // Note: Marine API usually doesn't have "current", we take the closest hourly index
-        // For simplicity here we might skip wave data for "current" or calculate closest hour
-        // This is a simplified implementation
-    };
+        return {
+            temperature: weather.current.temperature_2m || 0,
+            windSpeed: weather.current.wind_speed_10m || 0,
+            windDirection: weather.current.wind_direction_10m || 0,
+        };
+    } catch (error) {
+        console.error('Error getting current conditions:', error);
+        return null;
+    }
 };
 
 // Get full day weather data for a specific date
 export const getDayWeatherData = async (lat: number, lng: number, date: Date): Promise<HourlyWeatherData[]> => {
   try {
+    console.log(`Fetching full day weather for: ${date.toISOString().split('T')[0]}`);
+    
     const [weather, marine] = await Promise.all([
       fetchWeatherForecast(lat, lng),
       fetchMarineWeather(lat, lng)
     ]);
 
-    if (!weather || !weather.hourly) return [];
+    if (!weather || !weather.hourly) {
+      console.error('No hourly weather data available');
+      return [];
+    }
 
     const targetDate = date.toISOString().split('T')[0];
     const hourlyData: HourlyWeatherData[] = [];
@@ -88,6 +107,7 @@ export const getDayWeatherData = async (lat: number, lng: number, date: Date): P
       }
     }
 
+    console.log(`✓ Retrieved ${hourlyData.length} hours of REAL weather data for ${targetDate}`);
     return hourlyData;
   } catch (error) {
     console.error('Error fetching day weather data:', error);

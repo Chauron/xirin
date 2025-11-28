@@ -52,13 +52,20 @@ export const AddCatchPage: React.FC = () => {
     try {
         const now = new Date();
         
-        // Fetch current weather conditions automatically
+        console.log('🌊 === FETCHING CATCH DATA ===');
+        console.log('📍 Location:', spot.location);
+        
+        // Fetch current weather conditions automatically (REAL DATA from Open-Meteo)
+        console.log('☁️ Fetching REAL weather from Open-Meteo API...');
         const weatherData = await getCurrentConditions(spot.location.lat, spot.location.lng);
         
-        // Fetch full day weather data
+        // Fetch full day weather data (REAL DATA)
+        console.log('📊 Fetching REAL hourly weather...');
         const hourlyWeather = await getDayWeatherData(spot.location.lat, spot.location.lng, now);
         
         // Fetch tide data for 3 days (yesterday, today, tomorrow) to ensure we have previous and next tides
+        // ⚠️ SIMULATED DATA - See src/api/REAL_TIDE_APIS.md for real API integration
+        console.log('🌊 Fetching tide data (SIMULATED)...');
         const [tideDataYesterday, tideDataToday, tideDataTomorrow] = await Promise.all([
           fetchTideData(spot.location.lat, spot.location.lng, settings.tideProvider, -1),
           fetchTideData(spot.location.lat, spot.location.lng, settings.tideProvider, 0),
@@ -72,8 +79,11 @@ export const AddCatchPage: React.FC = () => {
           ...(tideDataTomorrow?.extremes || [])
         ];
         
-        console.log('Tide provider:', settings.tideProvider);
-        console.log('Combined tide events:', allTideEvents);
+        console.log('✅ Data collection complete:');
+        console.log('  - Weather: REAL (Open-Meteo)');
+        console.log('  - Hourly data:', hourlyWeather.length, 'hours');
+        console.log('  - Tide events: SIMULATED', allTideEvents.length, 'events');
+        console.log('🌊 === END DATA FETCH ===');
         
         let tideType: 'high' | 'low' | 'rising' | 'falling' | undefined = undefined;
         let tideHeight: number | undefined = undefined;
