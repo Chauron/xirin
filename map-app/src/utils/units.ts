@@ -63,6 +63,9 @@ export const getPressureUnit = (): string => {
 };
 
 // Format number with appropriate decimal places
-export const formatValue = (value: number, decimals: number = 1): string => {
+export const formatValue = (value: number | undefined | null, decimals: number = 1): string => {
+  if (value === undefined || value === null || isNaN(value)) {
+    return '-';
+  }
   return value.toFixed(decimals);
 };

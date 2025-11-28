@@ -162,7 +162,20 @@ npx cap open ios     # Abrir Xcode
 - **Estado**: ✅ **INTEGRADO Y FUNCIONANDO**
 - **Cobertura**: Océanos y mares principales
 
-### 🌊 APIs de Mareas (3 Opciones Implementadas)
+### 🌊 MeteoSIX API (MeteoGalicia) - IMPLEMENTADA
+- **URL**: https://servizos.meteogalicia.gal/apiv5/
+- **Cobertura**: Galicia (España) y aguas cercanas
+- **Modelos**: WRF (tiempo), WW3/SWAN (oleaje), ROMS/MOHID (corrientes)
+- **Estado**: ✅ **CÓDIGO COMPLETO - Requiere API key GRATUITA**
+- **Registro**: https://www.meteogalicia.gal/web/apiv5/solicitude-de-uso-da-api
+- **Datos de alta resolución** para Galicia:
+  - Predicción meteorológica (temperatura, viento, precipitación)
+  - Estado del mar (oleaje, temperatura del agua, corrientes)
+  - **Mareas** específicas para la costa gallega
+- **Ventaja**: Resolución muy superior a APIs globales en la región de Galicia
+- **Configuración**: Variable `VITE_METEOSIX_API_KEY` en archivo `.env`
+
+### 🌊 APIs de Mareas (4 Opciones Implementadas)
 
 #### 🌍 WorldTides API - IMPLEMENTADA
 - **Estado**: ✅ **CÓDIGO COMPLETO - Requiere configuración**
@@ -238,7 +251,10 @@ npx cap open ios     # Abrir Xcode
 
 ## 🐛 Problemas Conocidos
 
-- **Mareas**: Por defecto usa datos SIMULADOS. Para usar datos REALES ver [TIDE_SETUP_GUIDE.md](./TIDE_SETUP_GUIDE.md)
+- **Mareas**: Por defecto usa datos SIMULADOS. Para usar datos REALES ver:
+  - [TIDE_SETUP_GUIDE.md](./TIDE_SETUP_GUIDE.md) - WorldTides/NOAA/Puertos
+  - [METEOSIX_SETUP.md](./METEOSIX_SETUP.md) - MeteoSIX para Galicia
+- **MeteoSIX**: Solo disponible para Galicia y aguas cercanas. Fuera de esta zona se usa Open-Meteo automáticamente
 - **Offline**: Sin caché de APIs (próxima versión)
 - **Performance**: Gráficas pueden ser lentas con >500 puntos
 - **iOS**: No testeado en dispositivo real (solo simulador)

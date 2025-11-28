@@ -67,15 +67,15 @@ export const SpotDetailsPage: React.FC = () => {
     const loadData = async () => {
       if (spot) {
         setLoading(true);
-        const wData = await fetchWeatherForecast(spot.location.lat, spot.location.lng);
-        const mData = await fetchMarineWeather(spot.location.lat, spot.location.lng);
+        const wData = await fetchWeatherForecast(spot.location.lat, spot.location.lng, settings.weatherProvider);
+        const mData = await fetchMarineWeather(spot.location.lat, spot.location.lng, settings.waveProvider);
         setWeather(wData);
         setMarine(mData);
         setLoading(false);
       }
     };
     loadData();
-  }, [spot]);
+  }, [spot, settings.weatherProvider, settings.waveProvider]);
 
   useEffect(() => {
     const loadTideData = async () => {
@@ -92,9 +92,9 @@ export const SpotDetailsPage: React.FC = () => {
 
   // Calcular índices de hora para el día seleccionado
   let dayStart = 0, dayEnd = 24;
-  if (weather?.hourly?.time) {
-    const baseDate = new Date(weather.hourly.time[0]);
-    dayStart = weather.hourly.time.findIndex((t: string) => {
+  if (weather?.data?.hourly?.time) {
+    const baseDate = new Date(weather.data.hourly.time[0]);
+    dayStart = weather.data.hourly.time.findIndex((t: string) => {
       const d = new Date(t);
       return d.getDate() !== baseDate.getDate();
     });
@@ -103,17 +103,26 @@ export const SpotDetailsPage: React.FC = () => {
     dayEnd = dayStart + 24;
   }
 
-  const chartData = weather?.hourly?.time?.slice(dayStart, dayEnd).map((time: string, index: number) => ({
-    time: format(new Date(time), 'HH:mm'),
-    temp: convertTemperature(weather.hourly.temperature_2m[dayStart + index], settings.units),
-    wind: convertSpeed(weather.hourly.wind_speed_10m[dayStart + index], settings.units),
-    wave: convertWaveHeight(marine?.hourly?.wave_height?.[dayStart + index] || 0, settings.units),
-    waveDir: marine?.hourly?.wave_direction?.[dayStart + index] || 0,
-    pressure: weather.hourly.pressure_msl?.[dayStart + index],
-    humidity: weather.hourly.relative_humidity_2m?.[dayStart + index],
-    sky: getSkyIcon(weather.hourly.weather_code?.[dayStart + index], Number(format(new Date(time), 'H'))),
-    windDir: weather.hourly.wind_direction_10m?.[dayStart + index],
-  })) || [];
+  const chartData = weather?.data?.hourly?.time?.slice(dayStart, dayEnd).map((time: string, index: number) => {
+    // Validate time format
+    const timeDate = new Date(time);
+    if (isNaN(timeDate.getTime())) {
+      console.warn('Invalid time value:', time);
+      return null;
+    }
+    
+    return {
+      time: format(timeDate, 'HH:mm'),
+      temp: convertTemperature(weather.data.hourly.temperature_2m[dayStart + index], settings.units),
+      wind: convertSpeed(weather.data.hourly.wind_speed_10m[dayStart + index], settings.units),
+      wave: convertWaveHeight(marine?.data?.hourly?.wave_height?.[dayStart + index] || 0, settings.units),
+      waveDir: marine?.data?.hourly?.wave_direction?.[dayStart + index] || 0,
+      pressure: weather.data.hourly.pressure_msl?.[dayStart + index],
+      humidity: weather.data.hourly.relative_humidity_2m?.[dayStart + index],
+      sky: getSkyIcon(weather.data.hourly.weather_code?.[dayStart + index], Number(format(timeDate, 'H'))),
+      windDir: weather.data.hourly.wind_direction_10m?.[dayStart + index],
+    };
+  }).filter(Boolean) || [];
 
   return (
     <Box sx={{ p: 2, pb: 10, bgcolor: 'background.default', minHeight: '100vh' }}>
@@ -225,7 +234,7 @@ export const SpotDetailsPage: React.FC = () => {
                   }}>
                       <Typography variant="body2" color="text.secondary">🌡️ Temperatura</Typography>
                       <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                        {formatValue(convertTemperature(weather?.current?.temperature_2m, settings.units))}{getTemperatureUnit(settings.units)}
+                        {formatValue(convertTemperature(weather?.data?.current?.temperature_2m, settings.units))}{getTemperatureUnit(settings.units)}
                       </Typography>
                   </Box>
                   <Box sx={{ 
@@ -237,7 +246,7 @@ export const SpotDetailsPage: React.FC = () => {
                   }}>
                       <Typography variant="body2" color="text.secondary">💨 Viento</Typography>
                       <Typography variant="h4" sx={{ fontWeight: 700, color: 'secondary.main' }}>
-                        {formatValue(convertSpeed(weather?.current?.wind_speed_10m, settings.units), 0)} {getSpeedUnit(settings.units)}
+                        {formatValue(convertSpeed(weather?.data?.current?.wind_speed_10m, settings.units), 0)} {getSpeedUnit(settings.units)}
                       </Typography>
                   </Box>
                   <Box sx={{ 
@@ -249,7 +258,7 @@ export const SpotDetailsPage: React.FC = () => {
                   }}>
                       <Typography variant="body2" color="text.secondary">🧭 Dirección</Typography>
                       <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                        {weather?.current?.wind_direction_10m}° {getWindArrow(weather?.current?.wind_direction_10m)}
+                        {weather?.data?.current?.wind_direction_10m}° {getWindArrow(weather?.data?.current?.wind_direction_10m)}
                       </Typography>
                   </Box>
                   <Box sx={{ 
@@ -261,7 +270,7 @@ export const SpotDetailsPage: React.FC = () => {
                   }}>
                       <Typography variant="body2" color="text.secondary">📊 Presión</Typography>
                       <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                        {weather?.current?.pressure_msl} hPa
+                        {weather?.data?.current?.pressure_msl} hPa
                       </Typography>
                   </Box>                  
               </Box>
@@ -340,20 +349,47 @@ export const SpotDetailsPage: React.FC = () => {
                   <Box sx={{ height: 300, width: '100%' }}>
                       <ResponsiveContainer>
                           <LineChart data={chartData}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                              <XAxis dataKey="time" stroke="rgba(255,255,255,0.5)" />
-                              <YAxis yAxisId="left" stroke="rgba(255,255,255,0.5)" label={{ value: `Oleaje (${getWaveHeightUnit(settings.units)})`, angle: -90, position: 'insideLeft', style: { fill: 'rgba(255,255,255,0.7)' } }} />
-                              <YAxis yAxisId="right" orientation="right" stroke="rgba(255,255,255,0.5)" label={{ value: `Viento (${getSpeedUnit(settings.units)})`, angle: 90, position: 'insideRight', style: { fill: 'rgba(255,255,255,0.7)' } }} />
+                              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.1} />
+                              <XAxis 
+                                dataKey="time" 
+                                stroke="currentColor" 
+                                style={{ fontSize: '0.75rem' }}
+                              />
+                              <YAxis 
+                                yAxisId="left" 
+                                stroke="currentColor" 
+                                style={{ fontSize: '0.75rem' }}
+                                label={{ 
+                                  value: `Oleaje (${getWaveHeightUnit(settings.units)})`, 
+                                  angle: -90, 
+                                  position: 'insideLeft', 
+                                  style: { fill: 'currentColor', fontSize: '0.75rem' } 
+                                }} 
+                              />
+                              <YAxis 
+                                yAxisId="right" 
+                                orientation="right" 
+                                stroke="currentColor" 
+                                style={{ fontSize: '0.75rem' }}
+                                label={{ 
+                                  value: `Viento (${getSpeedUnit(settings.units)})`, 
+                                  angle: 90, 
+                                  position: 'insideRight', 
+                                  style: { fill: 'currentColor', fontSize: '0.75rem' } 
+                                }} 
+                              />
                               <RechartsTooltip 
                                 contentStyle={{ 
-                                  backgroundColor: 'rgba(19, 47, 76, 0.95)', 
+                                  backgroundColor: settings.darkMode ? 'rgba(19, 47, 76, 0.95)' : 'rgba(255, 255, 255, 0.95)', 
                                   border: '1px solid rgba(0, 188, 212, 0.3)',
-                                  borderRadius: 8
+                                  borderRadius: 8,
+                                  color: settings.darkMode ? '#fff' : '#000'
                                 }}
                               />
                               <Legend 
                                 wrapperStyle={{ 
-                                  paddingTop: '10px'
+                                  paddingTop: '10px',
+                                  color: 'currentColor'
                                 }}
                                 iconType="line"
                               />

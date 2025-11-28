@@ -1,11 +1,49 @@
 import axios from 'axios';
 import type { HourlyWeatherData } from '../models/types';
+import type { WeatherProvider, WaveProvider } from '../models/settings';
+import { 
+  fetchMeteoSixWeather, 
+  fetchMeteoSixMarine, 
+  parseMeteoSixCurrentWeather,
+  parseMeteoSixHourlyForecast,
+  parseMeteoSixMarineData,
+  parseMeteoSixHourlyMarine,
+  isWithinGaliciaCoverage 
+} from './meteoSixApi';
 
 const OPEN_METEO_MARINE_URL = 'https://marine-api.open-meteo.com/v1/marine';
 const OPEN_METEO_WEATHER_URL = 'https://api.open-meteo.com/v1/forecast';
 
-export const fetchMarineWeather = async (lat: number, lng: number) => {
+export const fetchMarineWeather = async (lat: number, lng: number, provider: WaveProvider = 'open-meteo') => {
   try {
+    // Use MeteoSIX only if explicitly selected and location is in Galicia
+    if (provider === 'meteosix' && isWithinGaliciaCoverage(lat, lng)) {
+      console.log('📍 Using MeteoSIX for marine data (user preference)');
+      const meteoSixData = await fetchMeteoSixMarine(lat, lng);
+      if (meteoSixData) {
+        console.log('✅ Using REAL marine data from MeteoSIX (high resolution)');
+        
+        // Parse MeteoSIX marine data and normalize to Open-Meteo format
+        const marineData = parseMeteoSixHourlyMarine(meteoSixData);
+        
+        if (marineData && marineData.length > 0) {
+          // Create normalized response compatible with Open-Meteo structure
+          const normalizedData = {
+            hourly: {
+              time: marineData.map((h: any) => h.time),
+              wave_height: marineData.map((h: any) => h.waveHeight || 0),
+              wave_direction: marineData.map((h: any) => h.waveDirection || 0),
+              wave_period: marineData.map((h: any) => h.wavePeriod || 0)
+            }
+          };
+          
+          return { source: 'MeteoSIX', data: normalizedData };
+        }
+      }
+      console.warn('⚠️ MeteoSIX marine data unavailable, falling back to Open-Meteo');
+    }
+
+    // Use Open-Meteo (default or fallback)
     console.log(`Fetching REAL marine data from Open-Meteo for: ${lat}, ${lng}`);
     const response = await axios.get(OPEN_METEO_MARINE_URL, {
       params: {
@@ -16,16 +54,55 @@ export const fetchMarineWeather = async (lat: number, lng: number) => {
         forecast_days: 3
       }
     });
-    console.log('Marine API response received:', response.data ? '✓ Data available' : '✗ No data');
-    return response.data;
+    console.log('✅ Marine API response received from Open-Meteo:', response.data ? '✓ Data available' : '✗ No data');
+    return { source: 'Open-Meteo', data: response.data };
   } catch (error) {
     console.error('Error fetching marine weather:', error);
     return null;
   }
 };
 
-export const fetchWeatherForecast = async (lat: number, lng: number) => {
+export const fetchWeatherForecast = async (lat: number, lng: number, provider: WeatherProvider = 'open-meteo') => {
   try {
+    // Use MeteoSIX only if explicitly selected and location is in Galicia
+    if (provider === 'meteosix' && isWithinGaliciaCoverage(lat, lng)) {
+      console.log('📍 Using MeteoSIX for weather data (user preference)');
+      const meteoSixData = await fetchMeteoSixWeather(lat, lng);
+      if (meteoSixData) {
+        console.log('✅ Using REAL weather data from MeteoSIX (high resolution)');
+        
+        // Parse MeteoSIX data and normalize to Open-Meteo format
+        const currentWeather = parseMeteoSixCurrentWeather(meteoSixData);
+        const hourlyForecast = parseMeteoSixHourlyForecast(meteoSixData);
+        
+        if (currentWeather && hourlyForecast.length > 0) {
+          // Create normalized response compatible with Open-Meteo structure
+          const normalizedData = {
+            current: {
+              temperature_2m: currentWeather.temperature,
+              wind_speed_10m: currentWeather.windSpeed,
+              wind_direction_10m: currentWeather.windDirection,
+              pressure_msl: currentWeather.pressure,
+              weather_code: 0 // MeteoSIX doesn't provide weather code
+            },
+            hourly: {
+              time: hourlyForecast.map((h: any) => h.time),
+              temperature_2m: hourlyForecast.map((h: any) => h.temperature),
+              wind_speed_10m: hourlyForecast.map((h: any) => h.windSpeed),
+              wind_direction_10m: hourlyForecast.map((h: any) => h.windDirection),
+              pressure_msl: hourlyForecast.map((h: any) => h.pressure),
+              cloud_cover: hourlyForecast.map((h: any) => h.cloudCover || 0),
+              relative_humidity_2m: hourlyForecast.map((h: any) => h.humidity || 0)
+            }
+          };
+          
+          return { source: 'MeteoSIX', data: normalizedData };
+        }
+      }
+      console.warn('⚠️ MeteoSIX weather data unavailable, falling back to Open-Meteo');
+    }
+
+    // Use Open-Meteo (default or fallback)
     console.log(`Fetching REAL weather data from Open-Meteo for: ${lat}, ${lng}`);
     const response = await axios.get(OPEN_METEO_WEATHER_URL, {
       params: {
@@ -37,8 +114,8 @@ export const fetchWeatherForecast = async (lat: number, lng: number) => {
         forecast_days: 3
       }
     });
-    console.log('Weather API response received:', response.data ? '✓ Data available' : '✗ No data');
-    return response.data;
+    console.log('✅ Weather API response received from Open-Meteo:', response.data ? '✓ Data available' : '✗ No data');
+    return { source: 'Open-Meteo', data: response.data };
   } catch (error) {
     console.error('Error fetching weather forecast:', error);
     return null;
@@ -48,10 +125,30 @@ export const fetchWeatherForecast = async (lat: number, lng: number) => {
 // Helper to get current conditions for a catch
 export const getCurrentConditions = async (lat: number, lng: number) => {
     try {
-        const weather = await fetchWeatherForecast(lat, lng);
+        const weatherResponse = await fetchWeatherForecast(lat, lng);
         
+        if (!weatherResponse) {
+            console.error('No weather data received');
+            return null;
+        }
+
+        // Handle MeteoSIX response
+        if (weatherResponse.source === 'MeteoSIX') {
+            console.log('Real weather data from MeteoSIX (Galicia high-resolution)');
+            const currentData = parseMeteoSixCurrentWeather(weatherResponse.data);
+            if (currentData) {
+                return {
+                    temperature: currentData.temperature,
+                    windSpeed: currentData.windSpeed,
+                    windDirection: currentData.windDirection,
+                };
+            }
+        }
+
+        // Handle Open-Meteo response
+        const weather = weatherResponse.data;
         if (!weather || !weather.current) {
-            console.error('No weather data received from Open-Meteo API');
+            console.error('No weather data available from Open-Meteo');
             return null;
         }
 
@@ -77,18 +174,57 @@ export const getDayWeatherData = async (lat: number, lng: number, date: Date): P
   try {
     console.log(`Fetching full day weather for: ${date.toISOString().split('T')[0]}`);
     
-    const [weather, marine] = await Promise.all([
+    const [weatherResponse, marineResponse] = await Promise.all([
       fetchWeatherForecast(lat, lng),
       fetchMarineWeather(lat, lng)
     ]);
 
-    if (!weather || !weather.hourly) {
+    if (!weatherResponse) {
       console.error('No hourly weather data available');
       return [];
     }
 
     const targetDate = date.toISOString().split('T')[0];
     const hourlyData: HourlyWeatherData[] = [];
+
+    // Handle MeteoSIX response
+    if (weatherResponse.source === 'MeteoSIX') {
+      console.log('✅ Using MeteoSIX data for hourly forecast (Galicia)');
+      const meteoSixHourly = parseMeteoSixHourlyForecast(weatherResponse.data);
+      
+      for (const hour of meteoSixHourly) {
+        if (hour.time.startsWith(targetDate)) {
+          let waveData = null;
+          if (marineResponse?.source === 'MeteoSIX') {
+            waveData = parseMeteoSixMarineData(marineResponse.data);
+          }
+
+          hourlyData.push({
+            time: hour.time,
+            temperature: hour.temperature,
+            windSpeed: hour.windSpeed,
+            windDirection: hour.windDirection,
+            pressure: hour.pressure,
+            cloudCover: hour.cloudCover,
+            waveHeight: waveData?.waveHeight,
+            wavePeriod: waveData?.wavePeriod,
+            waveDirection: waveData?.waveDirection,
+          });
+        }
+      }
+
+      console.log(`✓ Retrieved ${hourlyData.length} hours of MeteoSIX data for ${targetDate}`);
+      return hourlyData;
+    }
+
+    // Handle Open-Meteo response
+    const weather = weatherResponse.data;
+    const marine = marineResponse?.data;
+
+    if (!weather || !weather.hourly) {
+      console.error('No hourly weather data available from Open-Meteo');
+      return [];
+    }
 
     for (let i = 0; i < weather.hourly.time.length; i++) {
       const timeStr = weather.hourly.time[i];
@@ -107,7 +243,7 @@ export const getDayWeatherData = async (lat: number, lng: number, date: Date): P
       }
     }
 
-    console.log(`✓ Retrieved ${hourlyData.length} hours of REAL weather data for ${targetDate}`);
+    console.log(`✓ Retrieved ${hourlyData.length} hours of REAL weather data from Open-Meteo for ${targetDate}`);
     return hourlyData;
   } catch (error) {
     console.error('Error fetching day weather data:', error);

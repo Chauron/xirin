@@ -1,10 +1,11 @@
 import { create } from 'zustand';
-import type { Settings, Units, TideProvider, WaveProvider, Language } from '../models/settings';
+import type { Settings, Units, TideProvider, WaveProvider, WeatherProvider, Language } from '../models/settings';
 
 const defaultSettings: Settings = {
   units: 'metric',
   tideProvider: 'none',
   waveProvider: 'open-meteo',
+  weatherProvider: 'open-meteo',
   language: 'es',
   darkMode: false,
   notifyTides: false,
@@ -15,6 +16,7 @@ interface SettingsState {
   setUnits: (units: Units) => void;
   setTideProvider: (provider: TideProvider) => void;
   setWaveProvider: (provider: WaveProvider) => void;
+  setWeatherProvider: (provider: WeatherProvider) => void;
   setLanguage: (lang: Language) => void;
   setDarkMode: (dark: boolean) => void;
   setNotifyTides: (notify: boolean) => void;
@@ -36,6 +38,11 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   }),
   setWaveProvider: (provider) => set(state => {
     const s = { ...state.settings, waveProvider: provider };
+    localStorage.setItem('xirin-settings', JSON.stringify(s));
+    return { settings: s };
+  }),
+  setWeatherProvider: (provider) => set(state => {
+    const s = { ...state.settings, weatherProvider: provider };
     localStorage.setItem('xirin-settings', JSON.stringify(s));
     return { settings: s };
   }),

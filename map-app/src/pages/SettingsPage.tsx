@@ -9,6 +9,7 @@ export const SettingsPage: React.FC = () => {
     setUnits,
     setTideProvider,
     setWaveProvider,
+    setWeatherProvider,
     setLanguage,
     setDarkMode,
     setNotifyTides,
@@ -65,6 +66,36 @@ export const SettingsPage: React.FC = () => {
         }}>
           <ListItem>
             <FormControl fullWidth>
+              <InputLabel sx={{ color: 'primary.main' }}>Proveedor de Tiempo</InputLabel>
+              <Select
+                value={settings.weatherProvider}
+                label="Proveedor de Tiempo"
+                onChange={e => setWeatherProvider(e.target.value as any)}
+                sx={{
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(0, 188, 212, 0.3)',
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(0, 188, 212, 0.5)',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'primary.main',
+                  }
+                }}
+              >
+                <MenuItem value="open-meteo">🌐 Open-Meteo (Global)</MenuItem>
+                <MenuItem value="meteosix">🌊 MeteoSIX (Galicia)</MenuItem>
+              </Select>
+            </FormControl>
+          </ListItem>
+        </Card>
+        <Divider />
+        <Card sx={{ 
+          background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.05) 0%, rgba(76, 175, 80, 0.05) 100%)',
+          border: '1px solid rgba(0, 188, 212, 0.2)'
+        }}>
+          <ListItem>
+            <FormControl fullWidth>
               <InputLabel sx={{ color: 'primary.main' }}>Proveedor de Mareas</InputLabel>
               <Select
                 value={settings.tideProvider}
@@ -83,8 +114,9 @@ export const SettingsPage: React.FC = () => {
                 }}
               >
                 <MenuItem value="none">🚫 Ninguno</MenuItem>
-                <MenuItem value="opentide">🌊 OpenTidePrediction</MenuItem>
-                <MenuItem value="puertos">🇪🇸 Puertos del Estado (ES)</MenuItem>
+                <MenuItem value="opentide">🌊 OpenTidePrediction (Global)</MenuItem>
+                <MenuItem value="meteosix">🌊 MeteoSIX (Galicia)</MenuItem>
+                <MenuItem value="puertos">🇪🇸 Puertos del Estado (España)</MenuItem>
                 <MenuItem value="noaa">🇺🇸 NOAA (EE.UU.)</MenuItem>
               </Select>
             </FormControl>
@@ -114,9 +146,8 @@ export const SettingsPage: React.FC = () => {
                   }
                 }}
               >
-                <MenuItem value="open-meteo">🌐 Open-Meteo</MenuItem>
-                <MenuItem value="puertos">🇪🇸 Puertos del Estado (ES)</MenuItem>
-                <MenuItem value="noaa">🇺🇸 NOAA (EE.UU.)</MenuItem>
+                <MenuItem value="open-meteo">🌐 Open-Meteo (Global)</MenuItem>
+                <MenuItem value="meteosix">🌊 MeteoSIX (Galicia)</MenuItem>
               </Select>
             </FormControl>
           </ListItem>

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { fetchMeteoSixTides, isWithinGaliciaCoverage } from './meteoSixApi';
 
 export interface TideEvent {
   time: string;
@@ -12,7 +13,7 @@ interface TideData {
 }
 
 // Type for tide providers - aligned with settings.ts
-export type TideProvider = 'none' | 'opentide' | 'puertos' | 'noaa';
+export type TideProvider = 'none' | 'opentide' | 'puertos' | 'noaa' | 'meteosix';
 
 // NOAA Station data
 interface NOAAStation {
@@ -248,6 +249,51 @@ async function fetchPuertosData(lat: number, lng: number, daysOffset: number): P
 }
 
 // ============================================
+// METEOSIX API (METEOGALICIA)
+// ============================================
+
+async function fetchMeteoSixTideData(lat: number, lng: number, daysOffset: number): Promise<TideData | null> {
+  // Check if location is within Galicia coverage
+  if (!isWithinGaliciaCoverage(lat, lng)) {
+    console.log('📍 Location outside MeteoSIX coverage (Galicia region)');
+    return fetchSimulatedTideData(lat, lng, daysOffset);
+  }
+
+  try {
+    console.log('🌊 Fetching REAL tide data from MeteoSIX (MeteoGalicia)...');
+    
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + daysOffset);
+    
+    // Fetch tide data for the target date
+    const startDate = new Date(targetDate);
+    startDate.setHours(0, 0, 0, 0);
+    
+    const endDate = new Date(targetDate);
+    endDate.setHours(23, 59, 59, 999);
+    
+    const tideEvents = await fetchMeteoSixTides(lat, lng, startDate, endDate);
+    
+    if (tideEvents && tideEvents.length > 0) {
+      console.log(`✅ MeteoSIX tide data received: ${tideEvents.length} events for ${targetDate.toISOString().split('T')[0]}`);
+      
+      return {
+        extremes: tideEvents,
+        date: targetDate.toISOString().split('T')[0]
+      };
+    }
+    
+    console.log('⚠️ No MeteoSIX tide data available, falling back to simulated');
+    return fetchSimulatedTideData(lat, lng, daysOffset);
+    
+  } catch (error) {
+    console.error('❌ Error fetching MeteoSIX tide data:', error);
+    console.log('Falling back to simulated tide data');
+    return fetchSimulatedTideData(lat, lng, daysOffset);
+  }
+}
+
+// ============================================
 // SIMULATED TIDE DATA (FALLBACK)
 // ============================================
 
@@ -321,6 +367,9 @@ export const fetchTideData = async (lat: number, lng: number, provider: TideProv
       
       case 'puertos':
         return await fetchPuertosData(lat, lng, daysOffset);
+      
+      case 'meteosix':
+        return await fetchMeteoSixTideData(lat, lng, daysOffset);
       
       default:
         console.warn(`Unknown provider: ${provider}, using simulated data`);
