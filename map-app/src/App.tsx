@@ -4,6 +4,7 @@ import { MapPage } from './pages/MapPage';
 import SpotsPage from './pages/SpotsPage';
 import { SpotDetailsPage } from './pages/SpotDetailsPage';
 import { AddCatchPage } from './pages/AddCatchPage';
+import { EditCatchPage } from './pages/EditCatchPage';
 import { CatchesPage } from './pages/CatchesPage';
 import { CatchDetailsPage } from './pages/CatchDetailsPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -172,6 +173,7 @@ function App() {
             <Route path="add-catch/:spotId" element={<AddCatchPage />} />
             <Route path="catches" element={<CatchesPage />} />
             <Route path="catch/:id" element={<CatchDetailsPage />} />
+            <Route path="catch/:id/edit" element={<EditCatchPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>

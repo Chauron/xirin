@@ -12,6 +12,7 @@ interface AppState {
   deleteSpot: (id: number) => Promise<void>;
   loadCatches: () => Promise<void>;
   addCatch: (newCatch: Catch) => Promise<number>;
+  updateCatch: (id: number, catchData: Partial<Catch>) => Promise<void>;
   deleteCatch: (id: number) => Promise<void>;
 }
 
@@ -61,6 +62,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     const id = await db.catches.add(newCatch);
     await get().loadCatches();
     return id as number;
+  },
+
+  updateCatch: async (id: number, catchData: Partial<Catch>) => {
+    await db.catches.update(id, catchData);
+    await get().loadCatches();
   },
 
   deleteCatch: async (id: number) => {

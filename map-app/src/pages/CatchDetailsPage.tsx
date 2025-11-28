@@ -8,8 +8,16 @@ import {
   Avatar,
   Chip,
   Divider,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useAppStore } from '../store/useAppStore';
 import { useSettingsStore } from '../store/settingsStore';
 import { useLayoutContext } from '../components/Layout';
@@ -29,9 +37,11 @@ export function CatchDetailsPage() {
   const navigate = useNavigate();
   const catches = useAppStore((state) => state.catches);
   const spots = useAppStore((state) => state.spots);
+  const deleteCatch = useAppStore((state) => state.deleteCatch);
   const { settings } = useSettingsStore();
   const { setPageTitle, setShowBackButton } = useLayoutContext();
   const [catchData, setCatchData] = useState<Catch | null>(null);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   useEffect(() => {
     const found = catches.find((c) => c.id === Number(id));
@@ -46,6 +56,26 @@ export function CatchDetailsPage() {
       setShowBackButton(false);
     };
   }, [id, catches, setPageTitle, setShowBackButton]);
+
+  const handleEdit = () => {
+    navigate(`/catch/${id}/edit`);
+  };
+
+  const handleDeleteClick = () => {
+    setOpenDeleteDialog(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (catchData?.id) {
+      await deleteCatch(catchData.id);
+      setOpenDeleteDialog(false);
+      navigate('/catches');
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setOpenDeleteDialog(false);
+  };
 
   if (!catchData) {
     return (
@@ -68,6 +98,42 @@ export function CatchDetailsPage() {
     >
       {/* Content */}
       <Box sx={{ p: 2 }}>
+        {/* Action buttons */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+          <Button
+            variant="contained"
+            startIcon={<EditIcon />}
+            onClick={handleEdit}
+            fullWidth
+            sx={{
+              background: 'linear-gradient(45deg, #00bcd4 30%, #4caf50 90%)',
+              boxShadow: '0 3px 15px rgba(0, 188, 212, 0.3)',
+              fontWeight: 600,
+              '&:hover': {
+                background: 'linear-gradient(45deg, #00acc1 30%, #43a047 90%)',
+              }
+            }}
+          >
+            Editar
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<DeleteIcon />}
+            onClick={handleDeleteClick}
+            fullWidth
+            sx={{
+              background: 'linear-gradient(45deg, #f44336 30%, #e91e63 90%)',
+              boxShadow: '0 3px 15px rgba(244, 67, 54, 0.3)',
+              fontWeight: 600,
+              '&:hover': {
+                background: 'linear-gradient(45deg, #d32f2f 30%, #c2185b 90%)',
+              }
+            }}
+          >
+            Eliminar
+          </Button>
+        </Box>
+
         {/* Imagen de la captura */}
         {catchData.photoUrl && (
           <Card
@@ -381,6 +447,55 @@ export function CatchDetailsPage() {
           </Card>
         )}
       </Box>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={openDeleteDialog}
+        onClose={handleDeleteCancel}
+        PaperProps={{
+          sx: {
+            bgcolor: '#1a1a2e',
+            border: '2px solid rgba(244, 67, 54, 0.5)',
+            boxShadow: '0 8px 32px rgba(244, 67, 54, 0.3)',
+          }
+        }}
+      >
+        <DialogTitle sx={{ color: '#fff', fontWeight: 600 }}>
+          ⚠️ Confirmar eliminación
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ color: 'text.secondary' }}>
+            ¿Estás seguro de que deseas eliminar esta captura? Esta acción no se puede deshacer.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button 
+            onClick={handleDeleteCancel}
+            sx={{ 
+              color: 'text.secondary',
+              '&:hover': {
+                bgcolor: 'rgba(255, 255, 255, 0.05)'
+              }
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleDeleteConfirm}
+            variant="contained"
+            sx={{
+              background: 'linear-gradient(45deg, #f44336 30%, #e91e63 90%)',
+              boxShadow: '0 3px 15px rgba(244, 67, 54, 0.3)',
+              fontWeight: 600,
+              '&:hover': {
+                background: 'linear-gradient(45deg, #d32f2f 30%, #c2185b 90%)',
+              }
+            }}
+          >
+            Eliminar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
