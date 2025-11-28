@@ -25,6 +25,25 @@ export interface WeatherConditions {
   pressure?: number;
   cloudCover?: number;
   tideType?: 'high' | 'low' | 'rising' | 'falling';
+  tideHeight?: number;
+}
+
+export interface TideEvent {
+  time: string;
+  type: 'high' | 'low';
+  height: number;
+}
+
+export interface HourlyWeatherData {
+  time: string;
+  temperature: number;
+  windSpeed: number;
+  windDirection: number;
+  pressure?: number;
+  cloudCover?: number;
+  waveHeight?: number;
+  wavePeriod?: number;
+  waveDirection?: number;
 }
 
 export interface Catch {
@@ -36,6 +55,8 @@ export interface Catch {
   photoUrl?: string;
   weather: WeatherConditions;
   notes?: string;
+  hourlyWeather?: HourlyWeatherData[];
+  tideEvents?: TideEvent[];
 }
 
 export interface WeatherData {

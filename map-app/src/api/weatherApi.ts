@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { HourlyWeatherData } from '../models/types';
 
 const OPEN_METEO_MARINE_URL = 'https://marine-api.open-meteo.com/v1/marine';
 const OPEN_METEO_WEATHER_URL = 'https://api.open-meteo.com/v1/forecast';
@@ -56,3 +57,41 @@ export const getCurrentConditions = async (lat: number, lng: number) => {
         // This is a simplified implementation
     };
 };
+
+// Get full day weather data for a specific date
+export const getDayWeatherData = async (lat: number, lng: number, date: Date): Promise<HourlyWeatherData[]> => {
+  try {
+    const [weather, marine] = await Promise.all([
+      fetchWeatherForecast(lat, lng),
+      fetchMarineWeather(lat, lng)
+    ]);
+
+    if (!weather || !weather.hourly) return [];
+
+    const targetDate = date.toISOString().split('T')[0];
+    const hourlyData: HourlyWeatherData[] = [];
+
+    for (let i = 0; i < weather.hourly.time.length; i++) {
+      const timeStr = weather.hourly.time[i];
+      if (timeStr.startsWith(targetDate)) {
+        hourlyData.push({
+          time: timeStr,
+          temperature: weather.hourly.temperature_2m?.[i] || 0,
+          windSpeed: weather.hourly.wind_speed_10m?.[i] || 0,
+          windDirection: weather.hourly.wind_direction_10m?.[i] || 0,
+          pressure: weather.hourly.pressure_msl?.[i],
+          cloudCover: weather.hourly.cloud_cover?.[i],
+          waveHeight: marine?.hourly?.wave_height?.[i],
+          wavePeriod: marine?.hourly?.wave_period?.[i],
+          waveDirection: marine?.hourly?.wave_direction?.[i],
+        });
+      }
+    }
+
+    return hourlyData;
+  } catch (error) {
+    console.error('Error fetching day weather data:', error);
+    return [];
+  }
+};
+

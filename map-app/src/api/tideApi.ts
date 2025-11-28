@@ -1,4 +1,4 @@
-interface TideEvent {
+export interface TideEvent {
   time: string;
   type: 'high' | 'low';
   height: number;

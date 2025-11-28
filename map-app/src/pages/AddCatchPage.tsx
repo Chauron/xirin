@@ -4,12 +4,15 @@ import { useAppStore } from '../store/useAppStore';
 import { useLayoutContext } from '../components/Layout';
 import { Camera, CameraResultType } from '@capacitor/camera';
 import { Box, Button, TextField, Typography, Card, CardMedia } from '@mui/material';
-import { getCurrentConditions } from '../api/weatherApi';
+import { getCurrentConditions, getDayWeatherData } from '../api/weatherApi';
+import { fetchTideData } from '../api/tideApi';
+import { useSettingsStore } from '../store/settingsStore';
 
 export const AddCatchPage: React.FC = () => {
   const { spotId } = useParams<{ spotId: string }>();
   const navigate = useNavigate();
   const { spots, addCatch } = useAppStore();
+  const { settings } = useSettingsStore();
   const { setPageTitle, setShowBackButton } = useLayoutContext();
   const [species, setSpecies] = useState('');
   const [weight, setWeight] = useState('');
@@ -47,12 +50,69 @@ export const AddCatchPage: React.FC = () => {
     setLoading(true);
 
     try {
+        const now = new Date();
+        
         // Fetch current weather conditions automatically
         const weatherData = await getCurrentConditions(spot.location.lat, spot.location.lng);
         
+        // Fetch full day weather data
+        const hourlyWeather = await getDayWeatherData(spot.location.lat, spot.location.lng, now);
+        
+        // Fetch tide data for 3 days (yesterday, today, tomorrow) to ensure we have previous and next tides
+        const [tideDataYesterday, tideDataToday, tideDataTomorrow] = await Promise.all([
+          fetchTideData(spot.location.lat, spot.location.lng, settings.tideProvider, -1),
+          fetchTideData(spot.location.lat, spot.location.lng, settings.tideProvider, 0),
+          fetchTideData(spot.location.lat, spot.location.lng, settings.tideProvider, 1)
+        ]);
+        
+        // Combine all tide events from 3 days
+        const allTideEvents = [
+          ...(tideDataYesterday?.extremes || []),
+          ...(tideDataToday?.extremes || []),
+          ...(tideDataTomorrow?.extremes || [])
+        ];
+        
+        console.log('Tide provider:', settings.tideProvider);
+        console.log('Combined tide events:', allTideEvents);
+        
+        let tideType: 'high' | 'low' | 'rising' | 'falling' | undefined = undefined;
+        let tideHeight: number | undefined = undefined;
+        
+        if (allTideEvents.length > 0) {
+          // Find the closest tide events before and after current time
+          const currentTime = now.getTime();
+          const sortedExtremes = allTideEvents
+            .map(e => ({ ...e, timestamp: new Date(e.time).getTime() }))
+            .sort((a, b) => a.timestamp - b.timestamp);
+          
+          const beforeTide = sortedExtremes.filter(e => e.timestamp <= currentTime).pop();
+          const afterTide = sortedExtremes.find(e => e.timestamp > currentTime);
+          
+          if (beforeTide && afterTide) {
+            // Determine if rising or falling
+            if (beforeTide.type === 'low' && afterTide.type === 'high') {
+              tideType = 'rising';
+            } else if (beforeTide.type === 'high' && afterTide.type === 'low') {
+              tideType = 'falling';
+            }
+            
+            // Interpolate tide height
+            const totalDuration = afterTide.timestamp - beforeTide.timestamp;
+            const elapsed = currentTime - beforeTide.timestamp;
+            const progress = elapsed / totalDuration;
+            tideHeight = beforeTide.height + (afterTide.height - beforeTide.height) * progress;
+          } else if (beforeTide) {
+            tideType = beforeTide.type;
+            tideHeight = beforeTide.height;
+          } else if (afterTide) {
+            tideType = afterTide.type;
+            tideHeight = afterTide.height;
+          }
+        }
+        
         await addCatch({
             spotId: spot.id!,
-            date: new Date(),
+            date: now,
             species,
             weight: weight ? parseFloat(weight) : undefined,
             notes,
@@ -61,8 +121,11 @@ export const AddCatchPage: React.FC = () => {
                 temperature: weatherData?.temperature || 0,
                 windSpeed: weatherData?.windSpeed || 0,
                 windDirection: weatherData?.windDirection || 0,
-                // Add other fields as needed
-            }
+                tideType,
+                tideHeight,
+            },
+            hourlyWeather,
+            tideEvents: allTideEvents,
         });
         navigate(-1);
     } catch (error) {
