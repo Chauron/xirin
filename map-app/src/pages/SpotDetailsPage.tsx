@@ -449,20 +449,19 @@ export const SpotDetailsPage: React.FC = () => {
                 <Table size="small" stickyHeader>
                   <TableHead>
                     <TableRow>
-                      <TableCell align="center" sx={{ minWidth: 60, py: 1.5 }}>Hora</TableCell>
-                      <TableCell align="center" sx={{ minWidth: 40, py: 1.5 }}>☁️<br/>Tiempo</TableCell>
-                      <TableCell align="center" sx={{ minWidth: 100, py: 1.5 }}>💨<br/>Viento</TableCell>
-                      <TableCell align="center" sx={{ minWidth: 100, py: 1.5 }}>🌊<br/>Oleaje</TableCell>
-                      <TableCell align="center" sx={{ minWidth: 60, py: 1.5 }}>🌡️<br/>Temp</TableCell>
-                      <TableCell align="center" sx={{ minWidth: 70, py: 1.5 }}>�<br/>Presión</TableCell>
-                      <TableCell align="center" sx={{ minWidth: 60, py: 1.5 }}>💧<br/>Hum</TableCell>
+                        <TableCell align="center" sx={{ minWidth: 60, py: 1.5 }}>🕐<br/>Hora</TableCell>                        
+                        <TableCell align="center" sx={{ minWidth: 100, py: 1.5 }}>💨<br/>Viento</TableCell>
+                        <TableCell align="center" sx={{ minWidth: 100, py: 1.5 }}>🌊<br/>Oleaje</TableCell>
+                        <TableCell align="center" sx={{ minWidth: 60, py: 1.5 }}>🌡️<br/>Temp</TableCell>
+                        <TableCell align="center" sx={{ minWidth: 40, py: 1.5 }}>☁️<br/>Tiempo</TableCell>
+                        <TableCell align="center" sx={{ minWidth: 70, py: 1.5 }}>📊<br/>Presión</TableCell>
+                        <TableCell align="center" sx={{ minWidth: 60, py: 1.5 }}>💧<br/>Hum</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {chartData.map((row: any, i: number) => (
                       <TableRow key={i}>
                         <TableCell align="center" sx={{ fontWeight: 600 }}>{row.time}</TableCell>
-                        <TableCell align="center" sx={{ fontSize: '1.2rem' }}>{row.sky}</TableCell>
                         <TableCell align="center">
                           {formatValue(row.wind, 0)} {getSpeedUnit(settings.units)}<br/>{getWindArrow(row.windDir)}
                         </TableCell>
@@ -470,6 +469,7 @@ export const SpotDetailsPage: React.FC = () => {
                           {formatValue(row.wave)}{getWaveHeightUnit(settings.units)}<br/>{getWindArrow(row.waveDir)}
                         </TableCell>
                         <TableCell align="center" sx={{ color: 'primary.main', fontWeight: 600 }}>{formatValue(row.temp)}{getTemperatureUnit(settings.units)}</TableCell>
+                        <TableCell align="center" sx={{ fontSize: '1.2rem' }}>{row.sky}</TableCell>
                         <TableCell align="center">{row.pressure} hPa</TableCell>
                         <TableCell align="center">{row.humidity}%</TableCell>
                       </TableRow>
