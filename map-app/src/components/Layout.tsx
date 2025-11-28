@@ -1,14 +1,29 @@
-import React from 'react';
-import { AppBar, Toolbar, Typography, Box, BottomNavigation, BottomNavigationAction, Paper } from '@mui/material';
+import React, { createContext, useContext, useState } from 'react';
+import { AppBar, Toolbar, Typography, Box, BottomNavigation, BottomNavigationAction, Paper, IconButton } from '@mui/material';
 import MapIcon from '@mui/icons-material/Map';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import ListIcon from '@mui/icons-material/List';
 import SettingsIcon from '@mui/icons-material/Settings';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
+
+interface LayoutContextType {
+  setPageTitle: (title: string) => void;
+  setShowBackButton: (show: boolean) => void;
+}
+
+const LayoutContext = createContext<LayoutContextType>({
+  setPageTitle: () => {},
+  setShowBackButton: () => {},
+});
+
+export const useLayoutContext = () => useContext(LayoutContext);
 
 export const Layout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [pageTitle, setPageTitle] = useState('🌊 XIRIN MARINE');
+  const [showBackButton, setShowBackButton] = useState(false);
 
   const getValue = () => {
     if (location.pathname === '/' || location.pathname.startsWith('/map')) return 0;
@@ -18,22 +33,40 @@ export const Layout: React.FC = () => {
     return 0;
   };
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: 'background.default' }}>
-      <AppBar 
-        position="static" 
-        sx={{ 
-          background: 'linear-gradient(135deg, #0a1929 0%, #1a237e 100%)',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-          pt: 'env(safe-area-inset-top)',
-        }}
-      >
-        <Toolbar sx={{ minHeight: { xs: 56, sm: 64 } }}>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 700, letterSpacing: 1 }}>
-            🌊 XIRIN MARINE
-          </Typography>
-        </Toolbar>
-      </AppBar>
+    <LayoutContext.Provider value={{ setPageTitle, setShowBackButton }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: 'background.default' }}>
+        <AppBar 
+          position="static" 
+          sx={{ 
+            bgcolor: 'background.paper',
+            color: 'text.primary',
+            boxShadow: 1,
+            pt: 'env(safe-area-inset-top)',
+          }}
+        >
+          <Toolbar sx={{ minHeight: { xs: 56, sm: 64 } }}>
+            {showBackButton && (
+              <IconButton
+                edge="start"
+                onClick={handleBack}
+                sx={{ 
+                  mr: 2,
+                  color: 'primary.main',
+                }}
+              >
+                <ArrowBackIcon />
+              </IconButton>
+            )}
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 700, letterSpacing: 0.5 }}>
+              {pageTitle}
+            </Typography>
+          </Toolbar>
+        </AppBar>
 
       <Box sx={{ flexGrow: 1, overflow: 'auto', position: 'relative', bgcolor: 'background.default' }}>
         <Outlet />
@@ -45,8 +78,8 @@ export const Layout: React.FC = () => {
         left: 0, 
         right: 0, 
         zIndex: 1000,
-        background: 'linear-gradient(135deg, #0a1929 0%, #1a237e 100%)',
-        boxShadow: '0 -4px 20px rgba(0,0,0,0.5)',
+        bgcolor: 'background.paper',
+        boxShadow: 3,
         pb: 'env(safe-area-inset-bottom)',
       }} elevation={3}>
         <BottomNavigation
@@ -62,9 +95,9 @@ export const Layout: React.FC = () => {
             background: 'transparent',
             minHeight: 56,
             '& .MuiBottomNavigationAction-root': {
-              color: 'rgba(255,255,255,0.5)',
+              color: 'text.secondary',
               '&.Mui-selected': {
-                color: '#00bcd4'
+                color: 'primary.main'
               }
             }
           }}
@@ -78,5 +111,6 @@ export const Layout: React.FC = () => {
       {/* Spacer for bottom nav */}
       <Box sx={{ height: 56 }} /> 
     </Box>
+    </LayoutContext.Provider>
   );
 };

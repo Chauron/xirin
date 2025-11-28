@@ -9,9 +9,24 @@ interface TideData {
   date: string;
 }
 
+// Type for tide providers - aligned with settings.ts
+export type TideProvider = 'none' | 'opentide' | 'puertos' | 'noaa';
+
 // API de mareas usando cálculos astronómicos simplificados
-// Para producción: integrar API real (WorldTides, NOAA, Puertos del Estado)
-export const fetchTideData = async (_lat: number, _lng: number, _provider: string, daysOffset: number = 0): Promise<TideData | null> => {
+// Para producción: integrar API real (OpenTide, NOAA, Puertos del Estado)
+export const fetchTideData = async (lat: number, lng: number, provider: TideProvider, daysOffset: number = 0): Promise<TideData | null> => {
+  // If provider is 'none', return null
+  if (provider === 'none') {
+    return null;
+  }
+
+  // For now, all providers use the demo/synthetic data
+  // In production, implement actual API calls for each provider
+  // Example: 
+  // - opentide: OpenTide API or similar
+  // - noaa: NOAA CO-OPS API (free, US locations)
+  // - puertos: Puertos del Estado API (Spain)
+  
   try {
     // Para demo, vamos a generar datos sintéticos basados en cálculos astronómicos simples
     // En producción, usar una API real de mareas
@@ -27,7 +42,9 @@ export const fetchTideData = async (_lat: number, _lng: number, _provider: strin
     // Calcular hora aproximada de la primera marea alta del día
     // Esto es una simplificación - las mareas reales dependen de la fase lunar y geografía
     const daysSinceNewMoon = ((targetDate.getTime() / (1000 * 60 * 60 * 24)) % 29.53);
-    const baseOffset = (daysSinceNewMoon / 29.53) * 24; // Offset basado en fase lunar
+    // Add some variation based on location (lat/lng)
+    const locationFactor = ((lat + 90) / 180 + (lng + 180) / 360) / 2;
+    const baseOffset = (daysSinceNewMoon / 29.53) * 24 + locationFactor * 6; // Offset basado en fase lunar y ubicación
     
     // Generar 4 eventos de marea (2 altas, 2 bajas)
     for (let i = 0; i < 4; i++) {
@@ -38,8 +55,10 @@ export const fetchTideData = async (_lat: number, _lng: number, _provider: strin
       const isHigh = i % 2 === 0;
       
       // Altura de marea simulada (metros)
-      const baseHeight = 2.5;
-      const variation = 1.5;
+      // Vary tide height based on provider (for demo purposes)
+      const providerMultiplier = provider === 'opentide' ? 1.2 : provider === 'noaa' ? 1.0 : 0.8;
+      const baseHeight = 2.5 * providerMultiplier;
+      const variation = 1.5 * providerMultiplier;
       const height = isHigh 
         ? baseHeight + variation 
         : baseHeight - variation;

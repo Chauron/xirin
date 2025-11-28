@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
+import { useSettingsStore } from '../store/settingsStore';
+import { useLayoutContext } from '../components/Layout';
 import type { Spot } from '../models/types';
 import { fetchWeatherForecast, fetchMarineWeather } from '../api/weatherApi';
 import { fetchTideData } from '../api/tideApi';
-import { Box, Typography, Card, CardContent, Button, CircularProgress, IconButton, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { Box, Typography, Card, CardContent, Button, CircularProgress, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
+import { convertTemperature, convertSpeed, convertWaveHeight, getTemperatureUnit, getSpeedUnit, getWaveHeightUnit, formatValue } from '../utils/units';
 // Utilidades para iconos de cielo y viento
 const getSkyIcon = (weatherCode: number, hour: number) => {
   // Ejemplo simple, puedes expandir según los códigos de Open-Meteo
@@ -32,6 +34,8 @@ export const SpotDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { spots, loadSpots, catches, loadCatches } = useAppStore();
+  const { settings } = useSettingsStore();
+  const { setPageTitle, setShowBackButton } = useLayoutContext();
   const [spot, setSpot] = useState<Spot | undefined>(undefined);
   const [weather, setWeather] = useState<any>(null);
   const [marine, setMarine] = useState<any>(null);
@@ -46,9 +50,18 @@ export const SpotDetailsPage: React.FC = () => {
     } else {
       const foundSpot = spots.find(s => s.id === Number(id));
       setSpot(foundSpot);
+      if (foundSpot) {
+        setPageTitle(foundSpot.name);
+        setShowBackButton(true);
+      }
     }
     loadCatches();
-  }, [spots, id, loadSpots, loadCatches]);
+    
+    return () => {
+      setPageTitle('🌊 XIRIN MARINE');
+      setShowBackButton(false);
+    };
+  }, [spots, id, loadSpots, loadCatches, setPageTitle, setShowBackButton]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -67,12 +80,12 @@ export const SpotDetailsPage: React.FC = () => {
   useEffect(() => {
     const loadTideData = async () => {
       if (spot) {
-        const tData = await fetchTideData(spot.location.lat, spot.location.lng, 'demo', selectedDay);
+  const tData = await fetchTideData(spot.location.lat, spot.location.lng, settings.tideProvider, selectedDay);
         setTideData(tData);
       }
     };
     loadTideData();
-  }, [spot, selectedDay]);
+  }, [spot, selectedDay, settings.tideProvider]);
 
   if (!spot) return <Box p={2}>Cargando spot...</Box>;
 
@@ -92,9 +105,9 @@ export const SpotDetailsPage: React.FC = () => {
 
   const chartData = weather?.hourly?.time?.slice(dayStart, dayEnd).map((time: string, index: number) => ({
     time: format(new Date(time), 'HH:mm'),
-    temp: weather.hourly.temperature_2m[dayStart + index],
-    wind: weather.hourly.wind_speed_10m[dayStart + index],
-    wave: marine?.hourly?.wave_height?.[dayStart + index] || 0,
+    temp: convertTemperature(weather.hourly.temperature_2m[dayStart + index], settings.units),
+    wind: convertSpeed(weather.hourly.wind_speed_10m[dayStart + index], settings.units),
+    wave: convertWaveHeight(marine?.hourly?.wave_height?.[dayStart + index] || 0, settings.units),
     waveDir: marine?.hourly?.wave_direction?.[dayStart + index] || 0,
     pressure: weather.hourly.pressure_msl?.[dayStart + index],
     humidity: weather.hourly.relative_humidity_2m?.[dayStart + index],
@@ -104,19 +117,6 @@ export const SpotDetailsPage: React.FC = () => {
 
   return (
     <Box sx={{ p: 2, pb: 10, bgcolor: 'background.default', minHeight: '100vh' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <IconButton 
-          onClick={() => navigate(-1)}
-          sx={{ 
-            bgcolor: 'rgba(0, 188, 212, 0.1)', 
-            '&:hover': { bgcolor: 'rgba(0, 188, 212, 0.2)' }
-          }}
-        >
-          <ArrowBackIcon />
-        </IconButton>
-        <Typography variant="h5" sx={{ ml: 1, fontWeight: 700 }}>{spot.name}</Typography>
-      </Box>
-
       <Typography variant="body1" color="text.secondary" paragraph>
         {spot.description}
       </Typography>
@@ -225,7 +225,7 @@ export const SpotDetailsPage: React.FC = () => {
                   }}>
                       <Typography variant="body2" color="text.secondary">🌡️ Temperatura</Typography>
                       <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                        {weather?.current?.temperature_2m}°C
+                        {formatValue(convertTemperature(weather?.current?.temperature_2m, settings.units))}{getTemperatureUnit(settings.units)}
                       </Typography>
                   </Box>
                   <Box sx={{ 
@@ -237,7 +237,7 @@ export const SpotDetailsPage: React.FC = () => {
                   }}>
                       <Typography variant="body2" color="text.secondary">💨 Viento</Typography>
                       <Typography variant="h4" sx={{ fontWeight: 700, color: 'secondary.main' }}>
-                        {weather?.current?.wind_speed_10m} km/h
+                        {formatValue(convertSpeed(weather?.current?.wind_speed_10m, settings.units), 0)} {getSpeedUnit(settings.units)}
                       </Typography>
                   </Box>
                   <Box sx={{ 
@@ -326,7 +326,7 @@ export const SpotDetailsPage: React.FC = () => {
                         {format(new Date(tide.time), 'HH:mm')}
                       </Typography>
                       <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
-                        {tide.height.toFixed(1)}m
+                        {formatValue(convertWaveHeight(tide.height, settings.units))}{getWaveHeightUnit(settings.units)}
                       </Typography>
                     </Box>
                   ))}
@@ -354,8 +354,8 @@ export const SpotDetailsPage: React.FC = () => {
                           <LineChart data={chartData}>
                               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                               <XAxis dataKey="time" stroke="rgba(255,255,255,0.5)" />
-                              <YAxis yAxisId="left" stroke="rgba(255,255,255,0.5)" label={{ value: 'Oleaje (m)', angle: -90, position: 'insideLeft', style: { fill: 'rgba(255,255,255,0.7)' } }} />
-                              <YAxis yAxisId="right" orientation="right" stroke="rgba(255,255,255,0.5)" label={{ value: 'Viento (km/h)', angle: 90, position: 'insideRight', style: { fill: 'rgba(255,255,255,0.7)' } }} />
+                              <YAxis yAxisId="left" stroke="rgba(255,255,255,0.5)" label={{ value: `Oleaje (${getWaveHeightUnit(settings.units)})`, angle: -90, position: 'insideLeft', style: { fill: 'rgba(255,255,255,0.7)' } }} />
+                              <YAxis yAxisId="right" orientation="right" stroke="rgba(255,255,255,0.5)" label={{ value: `Viento (${getSpeedUnit(settings.units)})`, angle: 90, position: 'insideRight', style: { fill: 'rgba(255,255,255,0.7)' } }} />
                               <RechartsTooltip 
                                 contentStyle={{ 
                                   backgroundColor: 'rgba(19, 47, 76, 0.95)', 
@@ -375,7 +375,7 @@ export const SpotDetailsPage: React.FC = () => {
                                 dataKey="wind" 
                                 stroke="#4caf50" 
                                 strokeWidth={2}
-                                name="Viento (km/h)" 
+                                name={`Viento (${getSpeedUnit(settings.units)})`}
                                 dot={{ fill: '#4caf50', r: 3 }}
                               />
                               <Line 
@@ -384,7 +384,7 @@ export const SpotDetailsPage: React.FC = () => {
                                 dataKey="wave" 
                                 stroke="#ff9800" 
                                 strokeWidth={2}
-                                name="Oleaje (m)" 
+                                name={`Oleaje (${getWaveHeightUnit(settings.units)})`}
                                 dot={{ fill: '#ff9800', r: 3 }}
                               />
                           </LineChart>
@@ -440,12 +440,12 @@ export const SpotDetailsPage: React.FC = () => {
                         <TableCell align="center" sx={{ fontWeight: 600 }}>{row.time}</TableCell>
                         <TableCell align="center" sx={{ fontSize: '1.2rem' }}>{row.sky}</TableCell>
                         <TableCell align="center">
-                          {row.wind} km/h<br/>{getWindArrow(row.windDir)}
+                          {formatValue(row.wind, 0)} {getSpeedUnit(settings.units)}<br/>{getWindArrow(row.windDir)}
                         </TableCell>
                         <TableCell align="center" sx={{ color: 'secondary.main', fontWeight: 600 }}>
-                          {row.wave}m<br/>{getWindArrow(row.waveDir)}
+                          {formatValue(row.wave)}{getWaveHeightUnit(settings.units)}<br/>{getWindArrow(row.waveDir)}
                         </TableCell>
-                        <TableCell align="center" sx={{ color: 'primary.main', fontWeight: 600 }}>{row.temp}°C</TableCell>
+                        <TableCell align="center" sx={{ color: 'primary.main', fontWeight: 600 }}>{formatValue(row.temp)}{getTemperatureUnit(settings.units)}</TableCell>
                         <TableCell align="center">{row.pressure} hPa</TableCell>
                         <TableCell align="center">{row.humidity}%</TableCell>
                       </TableRow>

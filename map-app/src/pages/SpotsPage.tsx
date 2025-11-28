@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
+import { useLayoutContext } from '../components/Layout';
 import { 
   Box, 
   Typography, 
@@ -25,6 +26,7 @@ import type { Spot } from '../models/types';
 export default function SpotsPage() {
   const navigate = useNavigate();
   const { spots, loadSpots, updateSpot, deleteSpot } = useAppStore();
+  const { setPageTitle, setShowBackButton } = useLayoutContext();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null);
@@ -35,8 +37,14 @@ export default function SpotsPage() {
   });
 
   useEffect(() => {
+    setPageTitle('Ubicaciones');
+    setShowBackButton(false);
     loadSpots();
-  }, [loadSpots]);
+    
+    return () => {
+      setPageTitle('🌊 XIRIN MARINE');
+    };
+  }, [loadSpots, setPageTitle, setShowBackButton]);
 
   const handleEditClick = (spot: Spot, event: React.MouseEvent) => {
     event.stopPropagation();

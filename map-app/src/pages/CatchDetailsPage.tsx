@@ -7,15 +7,16 @@ import {
   Typography,
   Avatar,
   Chip,
-  IconButton,
   Divider,
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { useAppStore } from '../store/useAppStore';
+import { useSettingsStore } from '../store/settingsStore';
+import { useLayoutContext } from '../components/Layout';
 import type { Catch } from '../models/types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { convertTemperature, convertSpeed, convertWeight, convertWaveHeight, getTemperatureUnit, getSpeedUnit, getWeightUnit, getWaveHeightUnit, formatValue } from '../utils/units';
 
 const getWindArrow = (deg: number): string => {
   const arrows = ['↓', '↙', '←', '↖', '↑', '↗', '→', '↘'];
@@ -28,14 +29,23 @@ export function CatchDetailsPage() {
   const navigate = useNavigate();
   const catches = useAppStore((state) => state.catches);
   const spots = useAppStore((state) => state.spots);
+  const { settings } = useSettingsStore();
+  const { setPageTitle, setShowBackButton } = useLayoutContext();
   const [catchData, setCatchData] = useState<Catch | null>(null);
 
   useEffect(() => {
     const found = catches.find((c) => c.id === Number(id));
     if (found) {
       setCatchData(found);
+      setPageTitle(`Captura: ${found.species}`);
+      setShowBackButton(true);
     }
-  }, [id, catches]);
+    
+    return () => {
+      setPageTitle('🌊 XIRIN MARINE');
+      setShowBackButton(false);
+    };
+  }, [id, catches, setPageTitle, setShowBackButton]);
 
   if (!catchData) {
     return (
@@ -52,28 +62,10 @@ export function CatchDetailsPage() {
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0a1929 0%, #1a237e 100%)',
-        pb: 8,
+        bgcolor: 'background.default',
+        pb: 10,
       }}
     >
-      {/* Header */}
-      <Box
-        sx={{
-          background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.2) 0%, rgba(76, 175, 80, 0.2) 100%)',
-          borderBottom: '1px solid rgba(0, 188, 212, 0.3)',
-          p: 2,
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <IconButton onClick={() => navigate(-1)} sx={{ color: '#00bcd4' }}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h5" sx={{ fontWeight: 600, color: '#fff' }}>
-            Detalles de Captura
-          </Typography>
-        </Box>
-      </Box>
-
       {/* Content */}
       <Box sx={{ p: 2 }}>
         {/* Imagen de la captura */}
@@ -141,7 +133,7 @@ export function CatchDetailsPage() {
                     ⚖️ Peso:
                   </Typography>
                   <Chip
-                    label={`${catchData.weight} kg`}
+                    label={`${formatValue(convertWeight(catchData.weight, settings.units))} ${getWeightUnit(settings.units)}`}
                     size="small"
                     sx={{
                       bgcolor: 'rgba(76, 175, 80, 0.2)',
@@ -231,7 +223,7 @@ export function CatchDetailsPage() {
                     🌡️ Temperatura
                   </Typography>
                   <Typography variant="h6" sx={{ fontWeight: 600, color: '#fff' }}>
-                    {weather.temperature}°C
+                    {formatValue(convertTemperature(weather.temperature, settings.units))}{getTemperatureUnit(settings.units)}
                   </Typography>
                 </Box>
 
@@ -251,7 +243,7 @@ export function CatchDetailsPage() {
                     💨 Viento
                   </Typography>
                   <Typography variant="h6" sx={{ fontWeight: 600, color: '#fff' }}>
-                    {weather.windSpeed} km/h
+                    {formatValue(convertSpeed(weather.windSpeed, settings.units), 0)} {getSpeedUnit(settings.units)}
                   </Typography>
                 </Box>
 
@@ -336,7 +328,7 @@ export function CatchDetailsPage() {
                       🌊 Oleaje
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 600, color: '#fff' }}>
-                      {weather.waveHeight} m
+                      {formatValue(convertWaveHeight(weather.waveHeight, settings.units))} {getWaveHeightUnit(settings.units)}
                     </Typography>
                   </Box>
                 )}

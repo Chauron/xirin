@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Box, Typography, List, ListItem, ListItemText, Switch, Divider, Select, MenuItem, FormControl, InputLabel, Card } from '@mui/material';
 import { useSettingsStore } from '../store/settingsStore';
+import { useLayoutContext } from '../components/Layout';
 
 export const SettingsPage: React.FC = () => {
   const {
@@ -13,14 +14,20 @@ export const SettingsPage: React.FC = () => {
     setNotifyTides,
     loadSettings
   } = useSettingsStore();
+  const { setPageTitle, setShowBackButton } = useLayoutContext();
 
-  useEffect(() => { loadSettings(); }, [loadSettings]);
+  useEffect(() => {
+    setPageTitle('Ajustes');
+    setShowBackButton(false);
+    loadSettings();
+    
+    return () => {
+      setPageTitle('🌊 XIRIN MARINE');
+    };
+  }, [loadSettings, setPageTitle, setShowBackButton]);
 
   return (
-    <Box sx={{ p: 2, bgcolor: 'background.default', minHeight: '100vh' }}>
-      <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-        ⚙️ Ajustes
-      </Typography>
+    <Box sx={{ p: 2, bgcolor: 'background.default', minHeight: '100vh', pb: 10 }}>
       <List sx={{ gap: 1, display: 'flex', flexDirection: 'column' }}>
         <Card sx={{ 
           background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.05) 0%, rgba(76, 175, 80, 0.05) 100%)',

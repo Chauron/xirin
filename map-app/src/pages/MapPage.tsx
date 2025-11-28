@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import { useAppStore } from '../store/useAppStore';
+import { useLayoutContext } from '../components/Layout';
 import { Box, Dialog, DialogTitle, DialogContent, TextField, Button, MenuItem, Select, FormControl, InputLabel, Typography, IconButton, Tooltip, Menu, ListItemIcon, ListItemText, CircularProgress, Snackbar, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
@@ -54,6 +55,7 @@ const MapClickHandler = ({ onMapClick, isSelecting }: { onMapClick: (lat: number
 
 export const MapPage: React.FC = () => {
   const { spots, loadSpots, addSpot } = useAppStore();
+  const { setPageTitle, setShowBackButton } = useLayoutContext();
   const navigate = useNavigate();
   const [openAddDialog, setOpenAddDialog] = useState(false);
   const [newSpotLocation, setNewSpotLocation] = useState<{lat: number, lng: number} | null>(null);
@@ -70,10 +72,12 @@ export const MapPage: React.FC = () => {
   const [selectingOnMap, setSelectingOnMap] = useState(false);
 
   useEffect(() => {
+    setPageTitle('🌊 XIRIN MARINE');
+    setShowBackButton(false);
     loadSpots();
     // Obtener ubicación inicial del usuario
     getCurrentLocation();
-  }, [loadSpots]);
+  }, [loadSpots, setPageTitle, setShowBackButton]);
 
   const getCurrentLocation = async () => {
     setLocating(true);
@@ -337,6 +341,7 @@ export const MapPage: React.FC = () => {
             sx={{
               bgcolor: 'background.paper',
               boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+              color: 'text.primary',
               '&:hover': {
                 bgcolor: 'primary.main',
                 color: 'white',
@@ -353,7 +358,7 @@ export const MapPage: React.FC = () => {
             {locating ? (
               <CircularProgress size={24} sx={{ color: 'primary.main' }} />
             ) : (
-              <MyLocationIcon sx={{ color: userLocation ? 'primary.main' : 'inherit' }} />
+              <MyLocationIcon />
             )}
           </IconButton>
         </Tooltip>

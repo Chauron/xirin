@@ -8,59 +8,133 @@ import { CatchesPage } from './pages/CatchesPage';
 import { CatchDetailsPage } from './pages/CatchDetailsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
-
-const theme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#00bcd4', // Cyan vibrante
-    },
-    secondary: {
-      main: '#4caf50', // Verde agua
-    },
-    background: {
-      default: '#0a1929',
-      paper: '#132f4c',
-    },
-    text: {
-      primary: '#fff',
-      secondary: 'rgba(255, 255, 255, 0.7)',
-    },
-  },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    h5: {
-      fontWeight: 600,
-    },
-    h6: {
-      fontWeight: 600,
-    },
-  },
-  shape: {
-    borderRadius: 12,
-  },
-  components: {
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05))',
-          backdropFilter: 'blur(20px)',
-        },
-      },
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          textTransform: 'none',
-          fontWeight: 600,
-          borderRadius: 8,
-        },
-      },
-    },
-  },
-});
+import { useSettingsStore } from './store/settingsStore';
+import { useEffect, useMemo } from 'react';
 
 function App() {
+  const { settings, loadSettings } = useSettingsStore();
+
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
+
+  const theme = useMemo(() => createTheme({
+    palette: {
+      mode: settings.darkMode ? 'dark' : 'light',
+      primary: {
+        main: '#00bcd4', // Cyan vibrante
+      },
+      secondary: {
+        main: '#4caf50', // Verde agua
+      },
+      background: settings.darkMode ? {
+        default: '#0a1929',
+        paper: '#132f4c',
+      } : {
+        default: '#f5f5f5',
+        paper: '#ffffff',
+      },
+      text: settings.darkMode ? {
+        primary: '#fff',
+        secondary: 'rgba(255, 255, 255, 0.7)',
+      } : {
+        primary: 'rgba(0, 0, 0, 0.87)',
+        secondary: 'rgba(0, 0, 0, 0.6)',
+      },
+    },
+    typography: {
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      h5: {
+        fontWeight: 600,
+      },
+      h6: {
+        fontWeight: 600,
+      },
+    },
+    shape: {
+      borderRadius: 12,
+    },
+    components: {
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            backgroundImage: settings.darkMode 
+              ? 'linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05))'
+              : 'linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9))',
+            backdropFilter: 'blur(20px)',
+          },
+        },
+      },
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+            fontWeight: 600,
+            borderRadius: 8,
+            '&:focus': {
+              outline: 'none',
+            },
+            '&:focus-visible': {
+              outline: 'none',
+            },
+          },
+        },
+      },
+      MuiIconButton: {
+        styleOverrides: {
+          root: {
+            '&:focus': {
+              outline: 'none',
+            },
+            '&:focus-visible': {
+              outline: 'none',
+            },
+          },
+        },
+      },
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+            fontWeight: 600,
+            '&:focus': {
+              outline: 'none',
+            },
+            '&:focus-visible': {
+              outline: 'none',
+            },
+          },
+        },
+      },
+      MuiButtonBase: {
+        defaultProps: {
+          disableRipple: false, // Keep ripple for mobile feedback
+        },
+        styleOverrides: {
+          root: {
+            '&:focus': {
+              outline: 'none',
+            },
+            '&:focus-visible': {
+              outline: 'none',
+            },
+          },
+        },
+      },
+      MuiBottomNavigationAction: {
+        styleOverrides: {
+          root: {
+            '&:focus': {
+              outline: 'none',
+            },
+            '&:focus-visible': {
+              outline: 'none',
+            },
+          },
+        },
+      },
+    },
+  }), [settings.darkMode]);
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />

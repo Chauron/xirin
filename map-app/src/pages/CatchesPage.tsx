@@ -1,28 +1,32 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
+import { useLayoutContext } from '../components/Layout';
 import { Box, Typography, List, ListItem, ListItemText, ListItemAvatar, Avatar, Card } from '@mui/material';
 import { format } from 'date-fns';
 
 export const CatchesPage: React.FC = () => {
   const navigate = useNavigate();
   const { catches, loadCatches, spots, loadSpots } = useAppStore();
+  const { setPageTitle, setShowBackButton } = useLayoutContext();
 
   useEffect(() => {
+    setPageTitle('Historial de Capturas');
+    setShowBackButton(false);
     loadCatches();
     if (spots.length === 0) loadSpots();
-  }, [loadCatches, loadSpots, spots.length]);
+    
+    return () => {
+      setPageTitle('🌊 XIRIN MARINE');
+    };
+  }, [loadCatches, loadSpots, spots.length, setPageTitle, setShowBackButton]);
 
   const getSpotName = (spotId: number) => {
       return spots.find(s => s.id === spotId)?.name || 'Desconocido';
   };
 
   return (
-    <Box sx={{ p: 2, bgcolor: 'background.default', minHeight: '100vh' }}>
-      <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-        🎣 Historial de Capturas
-      </Typography>
-      
+    <Box sx={{ p: 2, bgcolor: 'background.default', minHeight: '100vh', pb: 10 }}>
       {catches.length === 0 ? (
           <Card sx={{ 
             p: 4, 

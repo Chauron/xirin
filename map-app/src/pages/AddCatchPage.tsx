@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
+import { useLayoutContext } from '../components/Layout';
 import { Camera, CameraResultType } from '@capacitor/camera';
-import { Box, Button, TextField, Typography, Card, CardMedia, IconButton } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { Box, Button, TextField, Typography, Card, CardMedia } from '@mui/material';
 import { getCurrentConditions } from '../api/weatherApi';
 
 export const AddCatchPage: React.FC = () => {
   const { spotId } = useParams<{ spotId: string }>();
   const navigate = useNavigate();
   const { spots, addCatch } = useAppStore();
+  const { setPageTitle, setShowBackButton } = useLayoutContext();
   const [species, setSpecies] = useState('');
   const [weight, setWeight] = useState('');
   const [notes, setNotes] = useState('');
@@ -17,6 +18,16 @@ export const AddCatchPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const spot = spots.find(s => s.id === Number(spotId));
+
+  useEffect(() => {
+    setPageTitle(spot ? `Añadir Captura - ${spot.name}` : 'Añadir Captura');
+    setShowBackButton(true);
+    
+    return () => {
+      setPageTitle('🌊 XIRIN MARINE');
+      setShowBackButton(false);
+    };
+  }, [spot, setPageTitle, setShowBackButton]);
 
   const takePhoto = async () => {
     try {
@@ -64,22 +75,7 @@ export const AddCatchPage: React.FC = () => {
   if (!spot) return <Typography>Spot no encontrado</Typography>;
 
   return (
-    <Box sx={{ p: 2, bgcolor: 'background.default', minHeight: '100vh' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <IconButton 
-          onClick={() => navigate(-1)}
-          sx={{ 
-            bgcolor: 'rgba(0, 188, 212, 0.1)', 
-            '&:hover': { bgcolor: 'rgba(0, 188, 212, 0.2)' }
-          }}
-        >
-          <ArrowBackIcon />
-        </IconButton>
-        <Typography variant="h6" sx={{ ml: 1, fontWeight: 700 }}>
-          Nueva Captura en {spot.name}
-        </Typography>
-      </Box>
-
+    <Box sx={{ p: 2, bgcolor: 'background.default', minHeight: '100vh', pb: 10 }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <Button 
           variant="outlined" 
